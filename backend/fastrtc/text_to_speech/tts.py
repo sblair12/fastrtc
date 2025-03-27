@@ -14,7 +14,9 @@ class TTSOptions:
 
 
 class TTSModel(Protocol):
-    def tts(self, text: str) -> tuple[int, NDArray[np.float32]]: ...
+    def tts(
+        self, text: str, options: TTSOptions | None = None
+    ) -> tuple[int, NDArray[np.float32]]: ...
 
     async def stream_tts(
         self, text: str, options: TTSOptions | None = None
