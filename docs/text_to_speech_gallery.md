@@ -14,8 +14,7 @@
 }
 </style>
 
-A collection of Text-to-Speechs models ready to use with FastRTC. Click on the tags below to find the STT model you're looking for!
-
+A collection of Text-to-Speech models ready to use with FastRTC. Click on the tags below to find the TTS model you're looking for!
 !!! tip "Note"
     The model you want to use does not have to be in the gallery. This is just a collection of models with a common interface that are easy to "plug and play" into your FastRTC app. But You can use any model you want without having to do any special setup. Simply use it from your stream handler!
 
