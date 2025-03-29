@@ -124,6 +124,18 @@
     }
   }
 
+  let _on_change_cb = (msg: "change" | "tick" | "stopword" | any) => {
+    if (msg.type === "end_stream") {
+      on_change_cb(msg);
+      stream_state = "closed";
+      stop(pc);
+      access_webcam();
+    } else {
+      console.debug("calling on_change_cb with msg", msg);
+      on_change_cb(msg);
+    }
+  };
+
   let recording = false;
   let stream: MediaStream;
 
@@ -171,7 +183,7 @@
         server.offer,
         webrtc_id,
         "video",
-        on_change_cb,
+        _on_change_cb,
         rtp_params,
         undefined,
         reject_cb,

@@ -47,6 +47,8 @@
       msg?.type === "error"
     ) {
       gradio.dispatch(msg?.type === "error" ? "error" : "warning", msg.message);
+    } else if (msg?.type === "end_stream") {
+      gradio.dispatch("warning", msg.data);
     } else if (msg?.type === "fetch_output") {
       gradio.dispatch("state_change");
     } else if (msg?.type === "send_input") {

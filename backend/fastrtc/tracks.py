@@ -38,6 +38,7 @@ from numpy import typing as npt
 from fastrtc.utils import (
     AdditionalOutputs,
     DataChannel,
+    EndStream,
     WebRTCError,
     create_message,
     current_channel,
@@ -54,9 +55,14 @@ VideoNDArray: TypeAlias = Union[
 ]
 
 VideoEmitType = (
-    VideoNDArray | tuple[VideoNDArray, AdditionalOutputs] | AdditionalOutputs
+    VideoNDArray
+    | tuple[VideoNDArray, AdditionalOutputs]
+    | tuple[VideoNDArray, EndStream]
+    | AdditionalOutputs
+    | EndStream
 )
-VideoEventHandler = Callable[[npt.ArrayLike], VideoEmitType]
+VideoEventGenerator = Generator[VideoEmitType, None, None]
+VideoEventHandler = Callable[[npt.ArrayLike], VideoEmitType | VideoEventGenerator]
 
 
 @dataclass
@@ -172,6 +178,12 @@ class VideoCallback(VideoStreamTrack):
 
             args = self.add_frame_to_payload(cast(list, self.latest_args), frame_array)
             array, outputs = split_output(self.event_handler(*args))
+            if isinstance(outputs, EndStream):
+                cast(DataChannel, self.channel).send(
+                    create_message("end_stream", outputs.msg)
+                )
+                self.stop()
+                return None
             if (
                 isinstance(outputs, AdditionalOutputs)
                 and self.set_additional_outputs
@@ -444,6 +456,12 @@ class VideoStreamHandler_(VideoCallback):
             ):
                 self.set_additional_outputs(outputs)
                 self.channel.send(create_message("fetch_output", []))
+            if isinstance(outputs, EndStream):
+                cast(DataChannel, self.channel).send(
+                    create_message("end_stream", outputs.msg)
+                )
+                self.stop()
+                return
             if array is None and self.mode == "send":
                 return
 
@@ -586,6 +604,12 @@ class AudioCallback(AudioStreamTrack):
             await self.start()
 
             frame = await self.queue.get()
+            if isinstance(frame, EndStream):
+                cast(DataChannel, self.channel).send(
+                    create_message("end_stream", frame.msg)
+                )
+                self.stop()
+                return
             logger.debug("frame %s", frame)
 
             data_time = frame.time
@@ -675,6 +699,12 @@ class ServerToClientVideo(VideoStreamTrack):
                 )
             try:
                 next_array, outputs = split_output(next(self.generator))
+                if isinstance(outputs, EndStream):
+                    cast(DataChannel, self.channel).send(
+                        create_message("end_stream", outputs.msg)
+                    )
+                    self.stop()
+                    return
                 if (
                     isinstance(outputs, AdditionalOutputs)
                     and self.set_additional_outputs
@@ -770,6 +800,12 @@ class ServerToClientAudio(AudioStreamTrack):
 
             await self.start()
             data = await self.queue.get()
+            if isinstance(data, EndStream):
+                cast(DataChannel, self.channel).send(
+                    create_message("end_stream", data.msg)
+                )
+                self.stop()
+                return
             if data is None:
                 self.stop()
                 return

@@ -25,6 +25,17 @@
     tick: undefined;
   }>();
 
+  let _on_change_cb = (msg: "change" | "tick" | "stopword" | any) => {
+    if (msg.type === "end_stream") {
+      on_change_cb(msg);
+      stream_state = "closed";
+      stop(pc);
+    } else {
+      console.debug("calling on_change_cb with msg", msg);
+      on_change_cb(msg);
+    }
+  };
+
   let stream_state = "closed";
 
   $: if (value === "start_webrtc_stream") {
@@ -62,7 +73,7 @@
       server.offer,
       _webrtc_id,
       "video",
-      on_change_cb,
+      _on_change_cb,
     )
       .then((connection) => {
         clearTimeout(timeoutId);
