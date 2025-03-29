@@ -8,6 +8,7 @@ import logging
 import tempfile
 import traceback
 from contextvars import ContextVar
+from dataclasses import dataclass
 from typing import Any, Callable, Literal, Protocol, TypedDict, cast
 
 import av
@@ -59,6 +60,22 @@ def create_message(
 current_channel: ContextVar[DataChannel | None] = ContextVar(
     "current_channel", default=None
 )
+
+
+@dataclass
+class Context:
+    webrtc_id: str
+
+
+current_context: ContextVar[Context | None] = ContextVar(
+    "current_context", default=None
+)
+
+
+def get_current_context() -> Context:
+    if not (ctx := current_context.get()):
+        raise RuntimeError("No context found")
+    return ctx
 
 
 def _send_log(message: str, type: str) -> None:

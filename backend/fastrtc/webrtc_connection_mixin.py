@@ -38,6 +38,7 @@ from fastrtc.tracks import (
 )
 from fastrtc.utils import (
     AdditionalOutputs,
+    Context,
     create_message,
     webrtc_error_handler,
 )
@@ -291,7 +292,7 @@ class WebRTCConnectionMixin:
         def _(track):
             relay = MediaRelay()
             handler = self.handlers[body["webrtc_id"]]
-
+            context = Context(webrtc_id=body["webrtc_id"])
             if self.modality == "video" and track.kind == "video":
                 args = {}
                 handler_ = handler
@@ -304,6 +305,7 @@ class WebRTCConnectionMixin:
                     event_handler=cast(Callable, handler_),
                     set_additional_outputs=set_outputs,
                     mode=cast(Literal["send", "send-receive"], self.mode),
+                    context=context,
                     **args,
                 )
             elif self.modality == "audio-video" and track.kind == "video":
@@ -312,6 +314,7 @@ class WebRTCConnectionMixin:
                     event_handler=handler,  # type: ignore
                     set_additional_outputs=set_outputs,
                     fps=cast(StreamHandlerImpl, handler).fps,
+                    context=context,
                 )
             elif self.modality in ["audio", "audio-video"] and track.kind == "audio":
                 eh = cast(StreamHandlerImpl, handler)
@@ -320,6 +323,7 @@ class WebRTCConnectionMixin:
                     relay.subscribe(track),
                     event_handler=eh,
                     set_additional_outputs=set_outputs,
+                    context=context,
                 )
             else:
                 raise ValueError("Modality must be either video, audio, or audio-video")
@@ -336,6 +340,7 @@ class WebRTCConnectionMixin:
             elif self.mode == "send":
                 asyncio.create_task(cast(AudioCallback | VideoCallback, cb).start())
 
+        context = Context(webrtc_id=body["webrtc_id"])
         if self.mode == "receive":
             if self.modality == "video":
                 if isinstance(self.event_handler, VideoStreamHandler):
@@ -343,16 +348,19 @@ class WebRTCConnectionMixin:
                         cast(Callable, self.event_handler.callable),
                         set_additional_outputs=set_outputs,
                         fps=self.event_handler.fps,
+                        context=context,
                     )
                 else:
                     cb = ServerToClientVideo(
                         cast(Callable, self.event_handler),
                         set_additional_outputs=set_outputs,
+                        context=context,
                     )
             elif self.modality == "audio":
                 cb = ServerToClientAudio(
                     cast(Callable, self.event_handler),
                     set_additional_outputs=set_outputs,
+                    context=context,
                 )
             else:
                 raise ValueError("Modality must be either video or audio")

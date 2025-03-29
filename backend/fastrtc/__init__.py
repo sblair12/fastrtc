@@ -34,6 +34,7 @@ from .utils import (
     audio_to_file,
     audio_to_float32,
     audio_to_int16,
+    get_current_context,
     wait_for_item,
 )
 from .webrtc import (
@@ -77,4 +78,5 @@ __all__ = [
     "SileroVadOptions",
     "VideoStreamHandler",
     "CloseStream",
+    "get_current_context",
 ]
