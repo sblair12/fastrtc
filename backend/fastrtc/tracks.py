@@ -37,8 +37,8 @@ from numpy import typing as npt
 
 from fastrtc.utils import (
     AdditionalOutputs,
+    CloseStream,
     DataChannel,
-    EndStream,
     WebRTCError,
     create_message,
     current_channel,
@@ -57,9 +57,9 @@ VideoNDArray: TypeAlias = Union[
 VideoEmitType = (
     VideoNDArray
     | tuple[VideoNDArray, AdditionalOutputs]
-    | tuple[VideoNDArray, EndStream]
+    | tuple[VideoNDArray, CloseStream]
     | AdditionalOutputs
-    | EndStream
+    | CloseStream
 )
 VideoEventGenerator = Generator[VideoEmitType, None, None]
 VideoEventHandler = Callable[[npt.ArrayLike], VideoEmitType | VideoEventGenerator]
@@ -178,7 +178,7 @@ class VideoCallback(VideoStreamTrack):
 
             args = self.add_frame_to_payload(cast(list, self.latest_args), frame_array)
             array, outputs = split_output(self.event_handler(*args))
-            if isinstance(outputs, EndStream):
+            if isinstance(outputs, CloseStream):
                 cast(DataChannel, self.channel).send(
                     create_message("end_stream", outputs.msg)
                 )
@@ -456,7 +456,7 @@ class VideoStreamHandler_(VideoCallback):
             ):
                 self.set_additional_outputs(outputs)
                 self.channel.send(create_message("fetch_output", []))
-            if isinstance(outputs, EndStream):
+            if isinstance(outputs, CloseStream):
                 cast(DataChannel, self.channel).send(
                     create_message("end_stream", outputs.msg)
                 )
@@ -604,7 +604,7 @@ class AudioCallback(AudioStreamTrack):
             await self.start()
 
             frame = await self.queue.get()
-            if isinstance(frame, EndStream):
+            if isinstance(frame, CloseStream):
                 cast(DataChannel, self.channel).send(
                     create_message("end_stream", frame.msg)
                 )
@@ -699,7 +699,7 @@ class ServerToClientVideo(VideoStreamTrack):
                 )
             try:
                 next_array, outputs = split_output(next(self.generator))
-                if isinstance(outputs, EndStream):
+                if isinstance(outputs, CloseStream):
                     cast(DataChannel, self.channel).send(
                         create_message("end_stream", outputs.msg)
                     )
@@ -800,7 +800,7 @@ class ServerToClientAudio(AudioStreamTrack):
 
             await self.start()
             data = await self.queue.get()
-            if isinstance(data, EndStream):
+            if isinstance(data, CloseStream):
                 cast(DataChannel, self.channel).send(
                     create_message("end_stream", data.msg)
                 )

@@ -32,7 +32,7 @@ class AdditionalOutputs:
         self.args = args
 
 
-class EndStream:
+class CloseStream:
     def __init__(self, msg: str = "Stream closed") -> None:
         self.msg = msg
 
@@ -104,10 +104,12 @@ class WebRTCError(Exception):
         _send_log(message, "error")
 
 
-def split_output(data: tuple | Any) -> tuple[Any, AdditionalOutputs | EndStream | None]:
+def split_output(
+    data: tuple | Any,
+) -> tuple[Any, AdditionalOutputs | CloseStream | None]:
     if isinstance(data, AdditionalOutputs):
         return None, data
-    if isinstance(data, EndStream):
+    if isinstance(data, CloseStream):
         return None, data
     if isinstance(data, tuple):
         # handle the bare audio case
@@ -117,11 +119,11 @@ def split_output(data: tuple | Any) -> tuple[Any, AdditionalOutputs | EndStream 
             raise ValueError(
                 "The tuple must have exactly two elements: the data and an instance of AdditionalOutputs."
             )
-        if not isinstance(data[-1], (AdditionalOutputs, EndStream)):
+        if not isinstance(data[-1], (AdditionalOutputs, CloseStream)):
             raise ValueError(
                 "The last element of the tuple must be an instance of AdditionalOutputs."
             )
-        return data[0], cast(AdditionalOutputs | EndStream, data[1])
+        return data[0], cast(AdditionalOutputs | CloseStream, data[1])
     return data, None
 
 
@@ -160,7 +162,7 @@ async def player_worker_decode(
                 cast(DataChannel, channel()).send(create_message("fetch_output", []))
 
             if frame is None:
-                if isinstance(outputs, EndStream):
+                if isinstance(outputs, CloseStream):
                     await queue.put(outputs)
                 if quit_on_none:
                     await queue.put(None)
@@ -213,7 +215,7 @@ async def player_worker_decode(
                 processed_frame.time_base = audio_time_base
                 audio_samples += processed_frame.samples
                 await queue.put(processed_frame)
-            if isinstance(outputs, EndStream):
+            if isinstance(outputs, CloseStream):
                 await queue.put(outputs)
         except (TimeoutError, asyncio.TimeoutError):
             logger.warning(

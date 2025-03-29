@@ -25,7 +25,7 @@ from .tracks import (
 )
 from .utils import (
     AdditionalOutputs,
-    EndStream,
+    CloseStream,
     Warning,
     WebRTCError,
     aggregate_bytes_to_16bit,
@@ -76,5 +76,5 @@ __all__ = [
     "get_silero_model",
     "SileroVadOptions",
     "VideoStreamHandler",
-    "EndStream",
+    "CloseStream",
 ]
