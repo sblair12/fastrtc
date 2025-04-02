@@ -67,6 +67,7 @@ class Stream(WebRTCConnectionMixin):
         time_limit: float | None = None,
         rtp_params: dict[str, Any] | None = None,
         rtc_configuration: dict[str, Any] | None = None,
+        track_constraints: dict[str, Any] | None = None,
         additional_inputs: list[Component] | None = None,
         additional_outputs: list[Component] | None = None,
         ui_args: UIArgs | None = None,
@@ -87,6 +88,7 @@ class Stream(WebRTCConnectionMixin):
         self.additional_output_components = additional_outputs
         self.additional_input_components = additional_inputs
         self.additional_outputs_handler = additional_outputs_handler
+        self.track_constraints = track_constraints
         self.rtc_configuration = rtc_configuration
         self._ui = self._generate_default_ui(ui_args)
         self._ui.launch = self._wrap_gradio_launch(self._ui.launch)
@@ -226,6 +228,7 @@ class Stream(WebRTCConnectionMixin):
                         output_video = WebRTC(
                             label="Video Stream",
                             rtc_configuration=self.rtc_configuration,
+                            track_constraints=self.track_constraints,
                             mode="receive",
                             modality="video",
                         )
@@ -275,6 +278,7 @@ class Stream(WebRTCConnectionMixin):
                         output_video = WebRTC(
                             label="Video Stream",
                             rtc_configuration=self.rtc_configuration,
+                            track_constraints=self.track_constraints,
                             mode="send",
                             modality="video",
                         )
@@ -322,6 +326,7 @@ class Stream(WebRTCConnectionMixin):
                         image = WebRTC(
                             label="Stream",
                             rtc_configuration=self.rtc_configuration,
+                            track_constraints=self.track_constraints,
                             mode="send-receive",
                             modality="video",
                         )
@@ -376,6 +381,7 @@ class Stream(WebRTCConnectionMixin):
                             output_video = WebRTC(
                                 label="Audio Stream",
                                 rtc_configuration=self.rtc_configuration,
+                                track_constraints=self.track_constraints,
                                 mode="receive",
                                 modality="audio",
                                 icon=ui_args.get("icon"),
@@ -426,6 +432,7 @@ class Stream(WebRTCConnectionMixin):
                             image = WebRTC(
                                 label="Stream",
                                 rtc_configuration=self.rtc_configuration,
+                                track_constraints=self.track_constraints,
                                 mode="send",
                                 modality="audio",
                                 icon=ui_args.get("icon"),
@@ -479,6 +486,7 @@ class Stream(WebRTCConnectionMixin):
                             image = WebRTC(
                                 label="Stream",
                                 rtc_configuration=self.rtc_configuration,
+                                track_constraints=self.track_constraints,
                                 mode="send-receive",
                                 modality="audio",
                                 icon=ui_args.get("icon"),
@@ -535,6 +543,7 @@ class Stream(WebRTCConnectionMixin):
                             image = WebRTC(
                                 label="Stream",
                                 rtc_configuration=self.rtc_configuration,
+                                track_constraints=self.track_constraints,
                                 mode="send-receive",
                                 modality="audio-video",
                                 icon=ui_args.get("icon"),
