@@ -10,7 +10,7 @@ from numpy.typing import NDArray
 
 from .pause_detection import ModelOptions, PauseDetectionModel, get_silero_model
 from .tracks import EmitType, StreamHandler
-from .utils import create_message, split_output
+from .utils import AdditionalOutputs, create_message, split_output
 
 logger = getLogger(__name__)
 
@@ -243,7 +243,7 @@ class ReplyOnPause(StreamHandler):
                     self.send_message_sync(create_message("log", "response_starting"))
                     self.state.responded_audio = True
                 if self.phone_mode:
-                    if additional_outputs:
+                    if isinstance(additional_outputs, AdditionalOutputs):
                         self.latest_args = [None] + list(additional_outputs.args)
                 return output
             except (StopIteration, StopAsyncIteration):
