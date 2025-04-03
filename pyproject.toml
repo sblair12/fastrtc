@@ -11,7 +11,8 @@ name = "fastrtc"
 version = "0.0.19"
 description = "The realtime communication library for Python"
 readme = "README.md"
-license = "apache-2.0"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [{ name = "Freddy Boulton", email = "YOUREMAIL@domain.com" }]
 keywords = [
