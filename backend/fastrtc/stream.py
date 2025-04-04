@@ -36,6 +36,10 @@ class Body(BaseModel):
 
 
 class UIArgs(TypedDict):
+    """
+    UI customization arguments for the Gradio Blocks UI of the Stream class
+    """
+
     title: NotRequired[str]
     """Title of the demo"""
     subtitle: NotRequired[str]
@@ -56,6 +60,34 @@ class UIArgs(TypedDict):
 
 
 class Stream(WebRTCConnectionMixin):
+    """
+    Define an audio or video stream with a built-in UI, mountable on a FastAPI app.
+
+    This class encapsulates the logic for handling real-time communication (WebRTC)
+    streams, including setting up peer connections, managing tracks, generating
+    a Gradio user interface, and integrating with FastAPI for API endpoints.
+    It supports different modes (send, receive, send-receive) and modalities
+    (audio, video, audio-video), and can optionally handle additional Gradio
+    input/output components alongside the stream. It also provides functionality
+    for telephone integration via the FastPhone method.
+
+    Attributes:
+        mode (Literal["send-receive", "receive", "send"]): The direction of the stream.
+        modality (Literal["video", "audio", "audio-video"]): The type of media stream.
+        rtp_params (dict[str, Any] | None): Parameters for RTP encoding.
+        event_handler (HandlerType): The main function to process stream data.
+        concurrency_limit (int): The maximum number of concurrent connections allowed.
+        time_limit (float | None): Time limit in seconds for the event handler execution.
+        allow_extra_tracks (bool): Whether to allow extra tracks beyond the specified modality.
+        additional_output_components (list[Component] | None): Extra Gradio output components.
+        additional_input_components (list[Component] | None): Extra Gradio input components.
+        additional_outputs_handler (Callable | None): Handler for additional outputs.
+        track_constraints (dict[str, Any] | None): Constraints for media tracks (e.g., resolution).
+        webrtc_component (WebRTC): The underlying Gradio WebRTC component instance.
+        rtc_configuration (dict[str, Any] | None): Configuration for the RTCPeerConnection (e.g., ICE servers).
+        _ui (Blocks): The Gradio Blocks UI instance.
+    """
+
     def __init__(
         self,
         handler: HandlerType,
@@ -73,6 +105,28 @@ class Stream(WebRTCConnectionMixin):
         additional_outputs: list[Component] | None = None,
         ui_args: UIArgs | None = None,
     ):
+        """
+        Initialize the Stream instance.
+
+        Args:
+            handler: The function to handle incoming stream data and return output data.
+            additional_outputs_handler: An optional function to handle updates to additional output components.
+            mode: The direction of the stream ('send', 'receive', or 'send-receive').
+            modality: The type of media ('video', 'audio', or 'audio-video').
+            concurrency_limit: Maximum number of concurrent connections. 'default' maps to 1.
+            time_limit: Maximum execution time for the handler function in seconds.
+            allow_extra_tracks: If True, allows connections with tracks not matching the modality.
+            rtp_params: Optional dictionary of RTP encoding parameters.
+            rtc_configuration: Optional dictionary for RTCPeerConnection configuration (e.g., ICE servers).
+                               Required when deploying on Colab or Spaces.
+            track_constraints: Optional dictionary of constraints for media tracks (e.g., resolution, frame rate).
+            additional_inputs: Optional list of extra Gradio input components.
+            additional_outputs: Optional list of extra Gradio output components. Requires `additional_outputs_handler`.
+            ui_args: Optional dictionary to customize the default UI appearance (title, subtitle, icon, etc.).
+
+        Raises:
+            ValueError: If `additional_outputs` are provided without `additional_outputs_handler`.
+        """
         WebRTCConnectionMixin.__init__(self)
         self.mode = mode
         self.modality = modality
@@ -97,6 +151,18 @@ class Stream(WebRTCConnectionMixin):
         self._ui.launch = self._wrap_gradio_launch(self._ui.launch)
 
     def mount(self, app: FastAPI, path: str = ""):
+        """
+        Mount the stream's API endpoints onto a FastAPI application.
+
+        This method adds the necessary routes (`/webrtc/offer`, `/telephone/handler`,
+        `/telephone/incoming`, `/websocket/offer`) to the provided FastAPI app,
+        prefixed with the optional `path`. It also injects a startup message
+        into the app's lifespan.
+
+        Args:
+            app: The FastAPI application instance.
+            path: An optional URL prefix for the mounted routes.
+        """
         from fastapi import APIRouter
 
         router = APIRouter(prefix=path)
@@ -109,7 +175,18 @@ class Stream(WebRTCConnectionMixin):
         app.include_router(router)
 
     @staticmethod
-    def print_error(env: Literal["colab", "spaces"]):
+    def _print_error(env: Literal["colab", "spaces"]):
+        """
+        Print an error message and raise RuntimeError for missing rtc_configuration.
+
+        Used internally when running in Colab or Spaces without necessary WebRTC setup.
+
+        Args:
+            env: The environment ('colab' or 'spaces') where the error occurred.
+
+        Raises:
+            RuntimeError: Always raised after printing the error message.
+        """
         import click
 
         print(
@@ -125,14 +202,34 @@ class Stream(WebRTCConnectionMixin):
         )
 
     def _check_colab_or_spaces(self):
+        """
+        Check if running in Colab or Spaces and if rtc_configuration is missing.
+
+        Calls `_print_error` if the conditions are met.
+
+        Raises:
+            RuntimeError: If running in Colab/Spaces without `rtc_configuration`.
+        """
         from gradio.utils import colab_check, get_space
 
         if colab_check() and not self.rtc_configuration:
-            self.print_error("colab")
+            self._print_error("colab")
         if get_space() and not self.rtc_configuration:
-            self.print_error("spaces")
+            self._print_error("spaces")
 
     def _wrap_gradio_launch(self, callable):
+        """
+        Wrap the Gradio launch method to inject environment checks.
+
+        Ensures that `_check_colab_or_spaces` is called during the application
+        lifespan when `Blocks.launch()` is invoked.
+
+        Args:
+            callable: The original `gradio.Blocks.launch` method.
+
+        Returns:
+            A wrapped version of the launch method.
+        """
         import contextlib
 
         def wrapper(*args, **kwargs):
@@ -158,6 +255,15 @@ class Stream(WebRTCConnectionMixin):
     def _inject_startup_message(
         self, lifespan: Callable[[FastAPI], AsyncContextManager] | None = None
     ):
+        """
+        Create a FastAPI lifespan context manager to print startup messages and check environment.
+
+        Args:
+            lifespan: An optional existing lifespan context manager to wrap.
+
+        Returns:
+            An async context manager function suitable for `FastAPI(lifespan=...)`.
+        """
         import contextlib
 
         import click
@@ -186,7 +292,26 @@ class Stream(WebRTCConnectionMixin):
     def _generate_default_ui(
         self,
         ui_args: UIArgs | None = None,
-    ):
+    ) -> Blocks:
+        """
+        Generate the default Gradio UI based on mode, modality, and arguments.
+
+        Constructs a `gradio.Blocks` interface with the appropriate WebRTC component
+        and any specified additional input/output components.
+
+        Args:
+            ui_args: Optional dictionary containing UI customization arguments
+                     (title, subtitle, icon, etc.).
+
+        Returns:
+            A `gradio.Blocks` instance representing the generated UI.
+
+        Raises:
+            ValueError: If `additional_outputs` are provided without
+                        `additional_outputs_handler`.
+            ValueError: If the combination of `mode` and `modality` is invalid
+                        or not supported for UI generation.
+        """
         ui_args = ui_args or {}
         same_components = []
         additional_input_components = self.additional_input_components or []
@@ -590,18 +715,55 @@ class Stream(WebRTCConnectionMixin):
 
     @property
     def ui(self) -> Blocks:
+        """
+        Get the Gradio Blocks UI instance associated with this stream.
+
+        Returns:
+            The `gradio.Blocks` UI instance.
+        """
         return self._ui
 
     @ui.setter
     def ui(self, blocks: Blocks):
+        """
+        Set a custom Gradio Blocks UI for this stream.
+
+        Args:
+            blocks: The `gradio.Blocks` instance to use as the UI.
+        """
         self._ui = blocks
 
     async def offer(self, body: Body):
+        """
+        Handle an incoming WebRTC offer via HTTP POST.
+
+        Processes the SDP offer and ICE candidates from the client to establish
+        a WebRTC connection.
+
+        Args:
+            body: A Pydantic model containing the SDP offer, optional ICE candidate,
+                  type ('offer'), and a unique WebRTC ID.
+
+        Returns:
+            A dictionary containing the SDP answer generated by the server.
+        """
         return await self.handle_offer(
             body.model_dump(), set_outputs=self.set_additional_outputs(body.webrtc_id)
         )
 
     async def handle_incoming_call(self, request: Request):
+        """
+        Handle incoming telephone calls (e.g., via Twilio).
+
+        Generates TwiML instructions to connect the incoming call to the
+        WebSocket handler (`/telephone/handler`) for audio streaming.
+
+        Args:
+            request: The FastAPI Request object for the incoming call webhook.
+
+        Returns:
+            An HTMLResponse containing the TwiML instructions as XML.
+        """
         from twilio.twiml.voice_response import Connect, VoiceResponse
 
         response = VoiceResponse()
@@ -613,6 +775,12 @@ class Stream(WebRTCConnectionMixin):
         return HTMLResponse(content=str(response), media_type="application/xml")
 
     async def telephone_handler(self, websocket: WebSocket):
+        """
+        The websocket endpoint for streaming audio over Twilio phone.
+
+        Args:
+            websocket: The incoming WebSocket connection object.
+        """
         handler = cast(StreamHandlerImpl, self.event_handler.copy())  # type: ignore
         handler.phone_mode = True
 
@@ -636,6 +804,15 @@ class Stream(WebRTCConnectionMixin):
         await ws.handle_websocket(websocket)
 
     async def websocket_offer(self, websocket: WebSocket):
+        """
+        Handle WebRTC signaling over a WebSocket connection.
+
+        Provides an alternative to the HTTP POST `/webrtc/offer` endpoint for
+        exchanging SDP offers/answers and ICE candidates via WebSocket messages.
+
+        Args:
+            websocket: The incoming WebSocket connection object.
+        """
         handler = cast(StreamHandlerImpl, self.event_handler.copy())  # type: ignore
         handler.phone_mode = False
 
@@ -670,6 +847,25 @@ class Stream(WebRTCConnectionMixin):
         port: int = 8000,
         **kwargs,
     ):
+        """
+        Launch the FastPhone service for telephone integration.
+
+        Starts a local FastAPI server, mounts the stream, creates a public tunnel
+        (using Gradio's tunneling), registers the tunnel URL with the FastPhone
+        backend service, and prints the assigned phone number and access code.
+        This allows users to call the phone number and interact with the stream handler.
+
+        Args:
+            token: Optional Hugging Face Hub token for authentication with the
+                   FastPhone service. If None, attempts to find one automatically.
+            host: The local host address to bind the server to.
+            port: The local port to bind the server to.
+            **kwargs: Additional keyword arguments passed to `uvicorn.run`.
+
+        Raises:
+            httpx.HTTPStatusError: If registration with the FastPhone service fails.
+            RuntimeError: If running in Colab/Spaces without `rtc_configuration`.
+        """
         import atexit
         import inspect
         import secrets
