@@ -73,7 +73,7 @@ class WebRTCConnectionMixin:
         self.connections = defaultdict(list)
         self.data_channels = {}
         self.additional_outputs = defaultdict(OutputQueue)
-        self.handlers = {}
+        self.handlers: dict[str, HandlerType] = {}
         self.connection_timeouts = defaultdict(asyncio.Event)
         # These attributes should be set by subclasses:
         self.concurrency_limit: int | None

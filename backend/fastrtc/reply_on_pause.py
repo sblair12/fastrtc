@@ -206,6 +206,11 @@ class ReplyOnPause(StreamHandler):
         self.event.clear()
         self.state = AppState()
 
+    def trigger_response(self):
+        self.event.set()
+        if self.state.stream is None:
+            self.state.stream = np.array([], dtype=np.int16)
+
     async def async_iterate(self, generator) -> EmitType:
         return await anext(generator)
 
