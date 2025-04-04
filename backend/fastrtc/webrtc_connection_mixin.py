@@ -133,7 +133,7 @@ class WebRTCConnectionMixin:
         outputs = self.additional_outputs[webrtc_id]
         while not outputs.quit.is_set():
             try:
-                yield await asyncio.wait_for(outputs.queue.get(), 10)
+                yield await asyncio.wait_for(outputs.queue.get(), 0.1)
             except (asyncio.TimeoutError, TimeoutError):
                 logger.debug("Timeout waiting for output")
 
