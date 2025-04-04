@@ -70,3 +70,4 @@ plugins:
         - deployment.md
         - advanced-configuration.md
         - faq.md
+        - reference/*.md
