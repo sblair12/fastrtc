@@ -65,6 +65,34 @@ async def iterate(generator: Generator) -> Any:
 
 
 class ReplyOnPause(StreamHandler):
+    """
+    A stream handler that processes incoming audio, detects pauses,
+    and triggers a reply function (`fn`) when a pause is detected.
+
+    This handler accumulates audio chunks, uses a Voice Activity Detection (VAD)
+    model to determine speech segments, and identifies pauses based on configurable
+    thresholds. Once a pause is detected after speech has started, it calls the
+    provided generator function `fn` with the accumulated audio.
+
+    It can optionally run a `startup_fn` at the beginning and supports interruption
+    of the reply function if new audio arrives.
+
+    Attributes:
+        fn (ReplyFnGenerator): The generator function to call when a pause is detected.
+        startup_fn (Callable | None): An optional function to run at startup.
+        algo_options (AlgoOptions): Configuration for the pause detection algorithm.
+        model_options (ModelOptions | None): Configuration for the VAD model.
+        can_interrupt (bool): Whether incoming audio can interrupt the `fn` execution.
+        expected_layout (Literal["mono", "stereo"]): Expected audio channel layout.
+        output_sample_rate (int): Sample rate for the output audio from `fn`.
+        input_sample_rate (int): Expected sample rate of the input audio.
+        model (PauseDetectionModel): The VAD model instance.
+        state (AppState): The current state of the pause detection logic.
+        generator (Generator | AsyncGenerator | None): The active generator instance from `fn`.
+        event (Event): Threading event used to signal pause detection.
+        loop (asyncio.AbstractEventLoop): The asyncio event loop.
+    """
+
     def __init__(
         self,
         fn: ReplyFnGenerator,
@@ -78,6 +106,23 @@ class ReplyOnPause(StreamHandler):
         input_sample_rate: int = 48000,
         model: PauseDetectionModel | None = None,
     ):
+        """
+        Initializes the ReplyOnPause handler.
+
+        Args:
+            fn: The generator function to execute upon pause detection.
+                It receives `(sample_rate, audio_array)` and optionally `*args`.
+            startup_fn: An optional function to run once at the beginning.
+            algo_options: Options for the pause detection algorithm.
+            model_options: Options for the VAD model.
+            can_interrupt: If True, incoming audio during `fn` execution
+                will stop the generator and process the new audio.
+            expected_layout: Expected input audio layout ('mono' or 'stereo').
+            output_sample_rate: The sample rate expected for audio yielded by `fn`.
+            output_frame_size: Deprecated.
+            input_sample_rate: The expected sample rate of incoming audio.
+            model: An optional pre-initialized VAD model instance.
+        """
         super().__init__(
             expected_layout,
             output_sample_rate,
@@ -100,9 +145,16 @@ class ReplyOnPause(StreamHandler):
 
     @property
     def _needs_additional_inputs(self) -> bool:
+        """Checks if the reply function `fn` expects additional arguments."""
         return len(inspect.signature(self.fn).parameters) > 1
 
     def start_up(self):
+        """
+        Executes the startup function `startup_fn` if provided.
+
+        Waits for additional arguments if `_needs_additional_inputs` is True
+        before calling `startup_fn`. Sets the `event` after completion.
+        """
         if self.startup_fn:
             if self._needs_additional_inputs:
                 self.wait_for_args_sync()
@@ -113,6 +165,7 @@ class ReplyOnPause(StreamHandler):
             self.event.set()
 
     def copy(self):
+        """Creates a new instance of ReplyOnPause with the same configuration."""
         return ReplyOnPause(
             self.fn,
             self.startup_fn,
@@ -129,7 +182,22 @@ class ReplyOnPause(StreamHandler):
     def determine_pause(
         self, audio: np.ndarray, sampling_rate: int, state: AppState
     ) -> bool:
-        """Take in the stream, determine if a pause happened"""
+        """
+        Analyzes an audio chunk to detect if a significant pause occurred after speech.
+
+        Uses the VAD model to measure speech duration within the chunk. Updates the
+        application state (`state`) regarding whether talking has started and
+        accumulates speech segments.
+
+        Args:
+            audio: The numpy array containing the audio chunk.
+            sampling_rate: The sample rate of the audio chunk.
+            state: The current application state.
+
+        Returns:
+            True if a pause satisfying the configured thresholds is detected
+            after speech has started, False otherwise.
+        """
         duration = len(audio) / sampling_rate
 
         if duration >= self.algo_options.audio_chunk_duration:
@@ -152,6 +220,16 @@ class ReplyOnPause(StreamHandler):
         return False
 
     def process_audio(self, audio: tuple[int, np.ndarray], state: AppState) -> None:
+        """
+        Processes an incoming audio frame.
+
+        Appends the frame to the buffer, runs pause detection on the buffer,
+        and updates the application state.
+
+        Args:
+            audio: A tuple containing the sample rate and the audio frame data.
+            state: The current application state to update.
+        """
         frame_rate, array = audio
         array = np.squeeze(array)
         if not state.sampling_rate:
@@ -167,6 +245,16 @@ class ReplyOnPause(StreamHandler):
         state.pause_detected = pause_detected
 
     def receive(self, frame: tuple[int, np.ndarray]) -> None:
+        """
+        Receives an audio frame from the stream.
+
+        Processes the audio frame using `process_audio`. If a pause is detected,
+        it sets the `event`. If interruption is enabled and a reply is ongoing,
+        it closes the current generator and clears the processing queue.
+
+        Args:
+            frame: A tuple containing the sample rate and the audio frame data.
+        """
         if self.state.responding and not self.can_interrupt:
             return
         self.process_audio(frame, self.state)
@@ -179,7 +267,13 @@ class ReplyOnPause(StreamHandler):
                 self.clear_queue()
 
     def _close_generator(self):
-        """Properly close the generator to ensure resources are released."""
+        """
+        Safely closes the active reply generator (`self.generator`).
+
+        Handles both synchronous and asynchronous generators, ensuring proper
+        resource cleanup (e.g., calling `aclose()` or `close()`).
+        Logs any errors during closure.
+        """
         if self.generator is None:
             return
 
@@ -199,6 +293,12 @@ class ReplyOnPause(StreamHandler):
             logger.debug(f"Error closing generator: {e}")
 
     def reset(self):
+        """
+        Resets the handler state to its initial condition.
+
+        Clears accumulated audio, resets state flags, closes any active generator,
+        and clears the event flag. Also handles resetting argument state for phone mode.
+        """
         super().reset()
         if self.phone_mode:
             self.args_set.set()
@@ -207,14 +307,37 @@ class ReplyOnPause(StreamHandler):
         self.state = AppState()
 
     def trigger_response(self):
+        """
+        Manually triggers the response generation process.
+
+        Sets the event flag, effectively simulating a pause detection.
+        Initializes the stream buffer if it's empty.
+        """
         self.event.set()
         if self.state.stream is None:
             self.state.stream = np.array([], dtype=np.int16)
 
     async def async_iterate(self, generator) -> EmitType:
+        """Helper function to get the next item from an async generator."""
         return await anext(generator)
 
     def emit(self):
+        """
+        Produces the next output chunk from the reply generator (`fn`).
+
+        This method is called repeatedly after a pause is detected (event is set).
+        If the generator is not already running, it initializes it by calling `fn`
+        with the accumulated audio and any required additional arguments.
+        It then yields the next item from the generator. Handles both sync and
+        async generators. Resets the state upon generator completion or error.
+
+        Returns:
+            The next output item from the generator, or None if no pause event
+            has occurred or the generator is exhausted.
+
+        Raises:
+            Exception: Re-raises exceptions occurring within the `fn` generator.
+        """
         if not self.event.is_set():
             return None
         else:

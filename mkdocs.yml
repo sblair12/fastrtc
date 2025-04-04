@@ -36,9 +36,9 @@ nav:
   - Frequently Asked Questions: faq.md
   - API Reference:
     - Stream: reference/stream.md
-    - ReplyOnPause: reply_on_pause.md
-    - StreamHandlers: stream_handlers.md
-    - Utils: utils.md
+    - Pause Detection Handlers: reference/reply_on_pause.md
+    - Stream Handlers: reference/stream_handlers.md
+    - Utils: reference/utils.md
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/marked/marked.min.js
