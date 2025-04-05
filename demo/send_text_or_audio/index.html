@@ -200,6 +200,26 @@
             background-color: #ffd700;
             color: black;
         }
+
+        /* Add styles for text input */
+        .text-input-container {
+            display: flex;
+            margin-top: 10px;
+            gap: 10px;
+        }
+
+        #text-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .text-input-container button {
+            padding: 10px 15px;
+        }
     </style>
 </head>
 
@@ -221,6 +241,11 @@
                     <div class="dot"></div>
                 </div>
             </div>
+            <!-- Added text input form -->
+            <form id="text-input-form" class="text-input-container">
+                <input type="text" id="text-input" placeholder="Type your message..." />
+                <button type="submit">Send</button>
+            </form>
         </div>
         <div class="controls">
             <button id="start-button">Start Conversation</button>
@@ -299,6 +324,7 @@
         function handleMessage(event) {
             const eventJson = JSON.parse(event.data);
             const typingIndicator = document.getElementById('typing-indicator');
+            const textInput = document.getElementById('text-input');
 
             if (eventJson.type === "error") {
                 showError(eventJson.message);
@@ -311,7 +337,8 @@
                     body: JSON.stringify({
                         webrtc_id: webrtc_id,
                         chatbot: messages,
-                        state: messages
+                        state: messages,
+                        textbox: textInput.value
                     })
                 });
             } else if (eventJson.type === "log") {
@@ -425,7 +452,7 @@
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', role);
 
-            if (role === 'user') {
+            if (role === 'user' && content.startsWith("data:audio/wav;base64,")) {
                 // Create audio element for user messages
                 const audio = document.createElement('audio');
                 audio.controls = true;
@@ -480,6 +507,30 @@
                 setupWebRTC();
             } else {
                 stop();
+            }
+        });
+
+        // Add event listener for text input form
+        document.getElementById('text-input-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const textInput = document.getElementById('text-input');
+
+            if (textInput.value.trim() !== '') {
+                fetch('/input_hook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        webrtc_id: webrtc_id,
+                        chatbot: messages,
+                        state: messages,
+                        textbox: textInput.value
+                    })
+                });
+
+                // Clear the input after submission
+                textInput.value = '';
             }
         });
     </script>

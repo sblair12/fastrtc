@@ -8,9 +8,10 @@ import anyio
 import librosa
 import numpy as np
 from fastapi import WebSocket
+from fastapi.websockets import WebSocketDisconnect, WebSocketState
 
 from .tracks import AsyncStreamHandler, StreamHandlerImpl
-from .utils import AdditionalOutputs, DataChannel, split_output
+from .utils import AdditionalOutputs, CloseStream, DataChannel, split_output
 
 
 class WebSocketDataChannel(DataChannel):
@@ -65,6 +66,9 @@ class WebSocketHandler:
         self.quit = asyncio.Event()
         self.clean_up = clean_up
         self.queue = asyncio.Queue()
+        self.playing_durations = []  # Track durations of frames being played
+        self._frame_cleanup_task: Optional[asyncio.Task] = None
+        self._graceful_shutdown_task: Optional[asyncio.Task] = None
 
     def _clear_queue(self):
         old_queue = self.queue
@@ -92,14 +96,21 @@ class WebSocketHandler:
         self.stream_handler.set_channel(self.data_channel)
         self._emit_task = asyncio.create_task(self._emit_loop())
         self._emit_to_queue_task = asyncio.create_task(self._emit_to_queue())
+        self._frame_cleanup_task = asyncio.create_task(self._cleanup_frames_loop())
         if isinstance(self.stream_handler, AsyncStreamHandler):
             start_up = self.stream_handler.start_up()
         else:
             start_up = anyio.to_thread.run_sync(self.stream_handler.start_up)  # type: ignore
 
+        was_disconnected = False
+
         self.start_up_task = asyncio.create_task(start_up)
         try:
             while not self.quit.is_set():
+                if websocket.application_state != WebSocketState.CONNECTED:
+                    was_disconnected = True
+                    break
+
                 message = await websocket.receive_json()
 
                 if message["event"] == "media":
@@ -117,15 +128,23 @@ class WebSocketHandler:
                             target_sr=self.stream_handler.input_sample_rate,
                         )
                         audio_array = (audio_array * 32768).astype(np.int16)
-                    if isinstance(self.stream_handler, AsyncStreamHandler):
-                        await self.stream_handler.receive(
-                            (self.stream_handler.input_sample_rate, audio_array)
-                        )
-                    else:
-                        await run_sync(
-                            self.stream_handler.receive,
-                            (self.stream_handler.input_sample_rate, audio_array),
-                        )
+
+                    try:
+                        if isinstance(self.stream_handler, AsyncStreamHandler):
+                            await self.stream_handler.receive(
+                                (self.stream_handler.input_sample_rate, audio_array)
+                            )
+                        else:
+                            await run_sync(
+                                self.stream_handler.receive,
+                                (self.stream_handler.input_sample_rate, audio_array),
+                            )
+                    except Exception as e:
+                        print(e)
+                        import traceback
+
+                        traceback.print_exc()
+                        logger.debug("Error in websocket handler %s", e)
 
                 elif message["event"] == "start":
                     if self.stream_handler.phone_mode:
@@ -138,25 +157,29 @@ class WebSocketHandler:
                     await self.set_handler(self.stream_id, self)
                 elif message["event"] == "stop":
                     self.quit.set()
-                    self.clean_up(cast(str, self.stream_id))
-                    return
+                    return  # Still runs the `finally` block
                 elif message["event"] == "ping":
                     await websocket.send_json({"event": "pong"})
-
-        except Exception as e:
-            print(e)
-            import traceback
-
-            traceback.print_exc()
-            logger.debug("Error in websocket handler %s", e)
+        except WebSocketDisconnect:
+            # Surprisingly, this leaves `websocket.application_state` as CONNECTED
+            # in the `finally` block, so we use this variable
+            was_disconnected = True
         finally:
             if self._emit_task:
                 self._emit_task.cancel()
             if self._emit_to_queue_task:
                 self._emit_to_queue_task.cancel()
+            if self._frame_cleanup_task:
+                self._frame_cleanup_task.cancel()
+            if self._graceful_shutdown_task:
+                self._graceful_shutdown_task.cancel()
             if self.start_up_task:
                 self.start_up_task.cancel()
-            await websocket.close()
+
+            if not was_disconnected:
+                await websocket.close()
+
+            self.clean_up(cast(str, self.stream_id))
 
     async def _emit_to_queue(self):
         try:
@@ -174,6 +197,45 @@ class WebSocketHandler:
             traceback.print_exc()
             logger.debug("Error in emit loop: %s", e)
 
+    async def _cleanup_frames_loop(self):
+        """Background task that removes frames from playing_durations after they've finished playing."""
+        try:
+            while not self.quit.is_set():
+                if self.playing_durations:
+                    duration = self.playing_durations[0]
+                    await asyncio.sleep(duration)
+                    if self.playing_durations:
+                        self.playing_durations.pop(0)
+                else:
+                    await asyncio.sleep(0.1)
+        except asyncio.CancelledError:
+            logger.debug("Frame cleanup loop cancelled")
+        except Exception as e:
+            logger.debug(f"Error in frame cleanup loop: {e}")
+
+    async def _wait_for_audio_completion(self):
+        """Wait for all queued audio to finish playing before shutting down."""
+        try:
+            if not self.playing_durations:
+                self.quit.set()
+                return
+
+            # Calculate total remaining playback time
+            total_wait = sum(self.playing_durations)
+
+            if total_wait > 0:
+                logger.debug(
+                    f"Waiting {total_wait:.2f}s for audio to complete before closing"
+                )
+                await asyncio.sleep(total_wait)
+
+            self.quit.set()
+        except asyncio.CancelledError:
+            logger.debug("Graceful shutdown cancelled")
+        except Exception as e:
+            logger.debug(f"Error in graceful shutdown: {e}")
+            self.quit.set()
+
     async def _emit_loop(self):
         try:
             while not self.quit.is_set():
@@ -181,10 +243,17 @@ class WebSocketHandler:
 
                 if output is not None:
                     frame, output = split_output(output)
-                    if output is not None:
+                    if isinstance(output, AdditionalOutputs):
                         self.set_additional_outputs(output)
+                    elif isinstance(output, CloseStream):
+                        self._graceful_shutdown_task = asyncio.create_task(
+                            self._wait_for_audio_completion()
+                        )
+                        continue
+
                     if not isinstance(frame, tuple):
                         continue
+
                     target_rate = (
                         self.stream_handler.output_sample_rate
                         if not self.stream_handler.phone_mode
@@ -196,6 +265,11 @@ class WebSocketHandler:
                     audio_payload = base64.b64encode(mulaw_audio).decode("utf-8")
 
                     if self.websocket and self.stream_id:
+                        sample_rate, audio_array = frame
+                        duration = len(audio_array) / sample_rate
+
+                        self.playing_durations.append(duration)
+
                         payload = {
                             "event": "media",
                             "media": {"payload": audio_payload},

@@ -51,12 +51,16 @@
     }
   });
 
-  let _on_change_cb = (msg: "change" | "tick" | "stopword") => {
+  let _on_change_cb = (msg: "change" | "tick" | "stopword" | any) => {
     if (msg === "stopword") {
       stopword_recognized = true;
       setTimeout(() => {
         stopword_recognized = false;
       }, 3000);
+    } else if (msg.type === "end_stream") {
+      stream_state = "closed";
+      stop(pc);
+      on_change_cb(msg);
     } else {
       console.debug("calling on_change_cb with msg", msg);
       on_change_cb(msg);

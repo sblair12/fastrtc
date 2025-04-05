@@ -17,7 +17,7 @@
 A collection of Turn Taking Algorithms and Voice Activity Detection (VAD) models ready to use with FastRTC. Click on the tags below to find the model you're looking for!
 
 <div class="tag-buttons">
-  <button class="tag-button" data-tag="vad-models"><code>VAD Model</code></button>
+  <button class="tag-button" data-tag="vad-model"><code>VAD Model</code></button>
   <button class="tag-button" data-tag="turn-taking-algorithm"><code>Turn-taking Algorithm</code></button>
 </div>
 
@@ -44,6 +44,33 @@ document.querySelectorAll('.tag-button').forEach(button => {
 ## Gallery
 
 <div class="grid cards" markdown>
+
+-   :speaking_head:{ .lg .middle }:eyes:{ .lg .middle } __HumAware VAD__
+{: data-tags="vad-model"}
+
+    ---
+
+    Description
+    **HumAware-VAD** is a fine-tuned version of **Silero-VAD**, specifically trained to **distinguish humming from actual speech**.
+    Standard VAD models often misclassify humming as speech, leading to inaccurate speech segmentation.
+    **HumAware-VAD** improves detection accuracy in environments with background humming, music, and vocal sounds.  
+
+    **Install Instructions**  
+    ```sh
+    pip install humaware-vad
+    ```  
+    **Use with FastRTC**  
+    ```sh
+    git clone https://github.com/CuriousMonkey7/HumAwareVad.git
+    cd HumAwareVad
+    python app.py
+    ```
+
+    <video width=98% src="https://github.com/user-attachments/assets/ea06a06f-d9e8-4203-a982-56326d160c9e" controls style="text-align: center"></video>  
+
+    [:octicons-arrow-right-24: Demo](https://github.com/CuriousMonkey7/HumAwareVad/blob/main/app.py)  
+
+    [:octicons-code-16: Repository](https://github.com/CuriousMonkey7/HumAwareVad/blob/main/humaware_vad/__init__.py)  
 
 -   :speaking_head:{ .lg .middle }:eyes:{ .lg .middle } __Walkie Talkie__
 {: data-tags="turn-taking-algorithm"}

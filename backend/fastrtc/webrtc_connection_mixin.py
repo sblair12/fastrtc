@@ -32,17 +32,20 @@ from fastrtc.tracks import (
     StreamHandlerBase,
     StreamHandlerImpl,
     VideoCallback,
+    VideoEventHandler,
     VideoStreamHandler,
+    VideoStreamHandler_,
 )
 from fastrtc.utils import (
     AdditionalOutputs,
+    Context,
     create_message,
     webrtc_error_handler,
 )
 
 Track = (
     VideoCallback
-    | VideoStreamHandler
+    | VideoStreamHandler_
     | AudioCallback
     | ServerToClientAudio
     | ServerToClientVideo
@@ -70,14 +73,15 @@ class WebRTCConnectionMixin:
         self.connections = defaultdict(list)
         self.data_channels = {}
         self.additional_outputs = defaultdict(OutputQueue)
-        self.handlers = {}
+        self.handlers: dict[str, HandlerType] = {}
         self.connection_timeouts = defaultdict(asyncio.Event)
         # These attributes should be set by subclasses:
-        self.concurrency_limit: int | float | None
+        self.concurrency_limit: int | None
         self.event_handler: HandlerType | None
         self.time_limit: float | None
         self.modality: Literal["video", "audio", "audio-video"]
         self.mode: Literal["send", "receive", "send-receive"]
+        self.allow_extra_tracks: bool
 
     @staticmethod
     async def wait_for_time_limit(pc: RTCPeerConnection, time_limit: float):
@@ -129,7 +133,7 @@ class WebRTCConnectionMixin:
         outputs = self.additional_outputs[webrtc_id]
         while not outputs.quit.is_set():
             try:
-                yield await asyncio.wait_for(outputs.queue.get(), 10)
+                yield await asyncio.wait_for(outputs.queue.get(), 0.1)
             except (asyncio.TimeoutError, TimeoutError):
                 logger.debug("Timeout waiting for output")
 
@@ -252,6 +256,11 @@ class WebRTCConnectionMixin:
                 handler.video_receive = webrtc_error_handler(handler.video_receive)  # type: ignore
             if hasattr(handler, "video_emit"):
                 handler.video_emit = webrtc_error_handler(handler.video_emit)  # type: ignore
+        elif isinstance(self.event_handler, VideoStreamHandler):
+            self.event_handler.callable = cast(
+                VideoEventHandler, webrtc_error_handler(self.event_handler.callable)
+            )
+            handler = self.event_handler
         else:
             handler = webrtc_error_handler(cast(Callable, self.event_handler))
 
@@ -284,19 +293,29 @@ class WebRTCConnectionMixin:
         def _(track):
             relay = MediaRelay()
             handler = self.handlers[body["webrtc_id"]]
-
+            context = Context(webrtc_id=body["webrtc_id"])
             if self.modality == "video" and track.kind == "video":
+                args = {}
+                handler_ = handler
+                if isinstance(handler, VideoStreamHandler):
+                    handler_ = handler.callable
+                    args["fps"] = handler.fps
+                    args["skip_frames"] = handler.skip_frames
                 cb = VideoCallback(
                     relay.subscribe(track),
-                    event_handler=cast(Callable, handler),
+                    event_handler=cast(Callable, handler_),
                     set_additional_outputs=set_outputs,
                     mode=cast(Literal["send", "send-receive"], self.mode),
+                    context=context,
+                    **args,
                 )
             elif self.modality == "audio-video" and track.kind == "video":
-                cb = VideoStreamHandler(
+                cb = VideoStreamHandler_(
                     relay.subscribe(track),
                     event_handler=handler,  # type: ignore
                     set_additional_outputs=set_outputs,
+                    fps=cast(StreamHandlerImpl, handler).fps,
+                    context=context,
                 )
             elif self.modality in ["audio", "audio-video"] and track.kind == "audio":
                 eh = cast(StreamHandlerImpl, handler)
@@ -305,9 +324,16 @@ class WebRTCConnectionMixin:
                     relay.subscribe(track),
                     event_handler=eh,
                     set_additional_outputs=set_outputs,
+                    context=context,
                 )
             else:
-                raise ValueError("Modality must be either video, audio, or audio-video")
+                if self.modality not in ["video", "audio", "audio-video"]:
+                    msg = "Modality must be either video, audio, or audio-video"
+                else:
+                    if self.allow_extra_tracks:
+                        return
+                    msg = f"Unsupported track kind '{track.kind}' for modality '{self.modality}'"
+                raise ValueError(msg)
             if body["webrtc_id"] not in self.connections:
                 self.connections[body["webrtc_id"]] = []
 
@@ -321,16 +347,27 @@ class WebRTCConnectionMixin:
             elif self.mode == "send":
                 asyncio.create_task(cast(AudioCallback | VideoCallback, cb).start())
 
+        context = Context(webrtc_id=body["webrtc_id"])
         if self.mode == "receive":
             if self.modality == "video":
-                cb = ServerToClientVideo(
-                    cast(Callable, self.event_handler),
-                    set_additional_outputs=set_outputs,
-                )
+                if isinstance(self.event_handler, VideoStreamHandler):
+                    cb = ServerToClientVideo(
+                        cast(Callable, self.event_handler.callable),
+                        set_additional_outputs=set_outputs,
+                        fps=self.event_handler.fps,
+                        context=context,
+                    )
+                else:
+                    cb = ServerToClientVideo(
+                        cast(Callable, self.event_handler),
+                        set_additional_outputs=set_outputs,
+                        context=context,
+                    )
             elif self.modality == "audio":
                 cb = ServerToClientAudio(
                     cast(Callable, self.event_handler),
                     set_additional_outputs=set_outputs,
+                    context=context,
                 )
             else:
                 raise ValueError("Modality must be either video or audio")

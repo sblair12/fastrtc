@@ -51,10 +51,10 @@ export async function start(
   server_fn,
   webrtc_id,
   modality: "video" | "audio" = "video",
-  on_change_cb: (msg: "change" | "tick") => void = () => {},
+  on_change_cb: (msg: "change" | "tick") => void = () => { },
   rtp_params = {},
-  additional_message_cb: (msg: object) => void = () => {},
-  reject_cb: (msg: object) => void = () => {},
+  additional_message_cb: (msg: object) => void = () => { },
+  reject_cb: (msg: object) => void = () => { },
 ) {
   pc = createPeerConnection(pc, node);
   const data_channel = pc.createDataChannel("text");
@@ -80,7 +80,8 @@ export async function start(
       event_json?.type === "error" ||
       event_json?.type === "send_input" ||
       event_json?.type === "fetch_output" ||
-      event_json?.type === "stopword"
+      event_json?.type === "stopword" ||
+      event_json?.type === "end_stream"
     ) {
       on_change_cb(event_json ?? event.data);
     }
@@ -108,7 +109,7 @@ export async function start(
 function make_offer(
   server_fn: any,
   body,
-  reject_cb: (msg: object) => void = () => {},
+  reject_cb: (msg: object) => void = () => { },
 ): Promise<object> {
   return new Promise((resolve, reject) => {
     server_fn(body).then((data) => {
@@ -127,9 +128,8 @@ async function negotiate(
   pc: RTCPeerConnection,
   server_fn: any,
   webrtc_id: string,
-  reject_cb: (msg: object) => void = () => {},
+  reject_cb: (msg: object) => void = () => { },
 ): Promise<void> {
-  // Add ICE candidate handler to send candidates as they're gathered
   pc.onicecandidate = ({ candidate }) => {
     if (candidate) {
       console.debug("Sending ICE candidate", candidate);
@@ -147,7 +147,6 @@ async function negotiate(
       return pc.setLocalDescription(offer);
     })
     .then(() => {
-      // No need to wait for ICE gathering to complete anymore
       var offer = pc.localDescription;
       return make_offer(
         server_fn,

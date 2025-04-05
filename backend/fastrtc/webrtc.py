@@ -29,6 +29,7 @@ from .tracks import (
     StreamHandlerBase,
     StreamHandlerImpl,
     VideoEventHandler,
+    VideoStreamHandler,
 )
 from .utils import RTCConfigurationCallable
 from .webrtc_connection_mixin import WebRTCConnectionMixin
@@ -85,6 +86,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
         rtc_configuration: dict[str, Any] | None | RTCConfigurationCallable = None,
         track_constraints: dict[str, Any] | None = None,
         time_limit: float | None = None,
+        allow_extra_tracks: bool = False,
         mode: Literal["send-receive", "receive", "send"] = "send-receive",
         modality: Literal["video", "audio", "audio-video"] = "video",
         rtp_params: dict[str, Any] | None = None,
@@ -117,6 +119,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
             rtc_configuration: WebRTC configuration options. See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/RTCPeerConnection . If running the demo on a remote server, you will need to specify a rtc_configuration. See https://freddyaboulton.github.io/gradio-webrtc/deployment/
             track_constraints: Media track constraints for WebRTC. For example, to set video height, width use {"width": {"exact": 800}, "height": {"exact": 600}, "aspectRatio": {"exact": 1.33333}}
             time_limit: Maximum duration in seconds for recording.
+            allow_extra_tracks: Allow tracks not supported by the modality. For example, a peer connection with an audio track would be allowed even if modality is 'video', which normally throws a ``ValueError`` exception.
             mode: WebRTC mode - "send-receive", "receive", or "send".
             modality: Type of media - "video" or "audio".
             rtp_params: See https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpSender/setParameters. If you are changing the video resolution, you can set this to {"degradationPreference": "maintain-framerate"} to keep the frame rate consistent.
@@ -133,6 +136,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
         self.mirror_webcam = mirror_webcam
         self.concurrency_limit = 1
         self.rtc_configuration = rtc_configuration
+        self.allow_extra_tracks = allow_extra_tracks
         self.mode = mode
         self.modality = modality
         self.icon_button_color = icon_button_color
@@ -236,6 +240,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
             inputs = list(inputs)
 
         async def handler(webrtc_id: str, *args):
+            print("webrtc_id", webrtc_id)
             async for next_outputs in self.output_stream(webrtc_id):
                 yield fn(*args, *next_outputs.args)  # type: ignore
 
@@ -258,6 +263,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
             | StreamHandlerImpl
             | AudioVideoStreamHandlerImpl
             | VideoEventHandler
+            | VideoStreamHandler
             | None
         ) = None,
         inputs: Block | Sequence[Block] | set[Block] | None = None,
@@ -267,6 +273,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
         concurrency_id: str | None = None,
         time_limit: float | None = None,
         trigger: Callable | None = None,
+        send_input_on: Literal["submit", "change"] = "change",
     ):
         from gradio.blocks import Block
 
@@ -308,7 +315,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
                     "In the webrtc stream event, the only output component must be the WebRTC component."
                 )
             for input_component in inputs[1:]:  # type: ignore
-                if hasattr(input_component, "change"):
+                if hasattr(input_component, "change") and send_input_on == "change":
                     input_component.change(  # type: ignore
                         self.set_input,
                         inputs=inputs,
@@ -317,6 +324,13 @@ class WebRTC(Component, WebRTCConnectionMixin):
                         concurrency_limit=None,
                         time_limit=None,
                         js=js,
+                    )
+                if hasattr(input_component, "submit") and send_input_on == "submit":
+                    input_component.submit(  # type: ignore
+                        self.set_input,
+                        inputs=inputs,
+                        outputs=None,
+                        concurrency_id=concurrency_id,
                     )
             return self.tick(  # type: ignore
                 self.set_input,

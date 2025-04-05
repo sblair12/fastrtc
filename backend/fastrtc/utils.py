@@ -9,6 +9,7 @@ import tempfile
 import traceback
 from contextvars import ContextVar
 from typing import Any, Callable, Coroutine, Literal, Protocol, TypedDict, cast
+from dataclasses import dataclass
 
 import av
 import librosa
@@ -32,6 +33,11 @@ class AdditionalOutputs:
         self.args = args
 
 
+class CloseStream:
+    def __init__(self, msg: str = "Stream closed") -> None:
+        self.msg = msg
+
+
 class DataChannel(Protocol):
     def send(self, message: str) -> None: ...
 
@@ -39,6 +45,7 @@ class DataChannel(Protocol):
 def create_message(
     type: Literal[
         "send_input",
+        "end_stream",
         "fetch_output",
         "stopword",
         "error",
@@ -53,6 +60,22 @@ def create_message(
 current_channel: ContextVar[DataChannel | None] = ContextVar(
     "current_channel", default=None
 )
+
+
+@dataclass
+class Context:
+    webrtc_id: str
+
+
+current_context: ContextVar[Context | None] = ContextVar(
+    "current_context", default=None
+)
+
+
+def get_current_context() -> Context:
+    if not (ctx := current_context.get()):
+        raise RuntimeError("No context found")
+    return ctx
 
 
 def _send_log(message: str, type: str) -> None:
@@ -98,8 +121,12 @@ class WebRTCError(Exception):
         _send_log(message, "error")
 
 
-def split_output(data: tuple | Any) -> tuple[Any, AdditionalOutputs | None]:
+def split_output(
+    data: tuple | Any,
+) -> tuple[Any, AdditionalOutputs | CloseStream | None]:
     if isinstance(data, AdditionalOutputs):
+        return None, data
+    if isinstance(data, CloseStream):
         return None, data
     if isinstance(data, tuple):
         # handle the bare audio case
@@ -109,11 +136,11 @@ def split_output(data: tuple | Any) -> tuple[Any, AdditionalOutputs | None]:
             raise ValueError(
                 "The tuple must have exactly two elements: the data and an instance of AdditionalOutputs."
             )
-        if not isinstance(data[-1], AdditionalOutputs):
+        if not isinstance(data[-1], (AdditionalOutputs, CloseStream)):
             raise ValueError(
                 "The last element of the tuple must be an instance of AdditionalOutputs."
             )
-        return data[0], cast(AdditionalOutputs, data[1])
+        return data[0], cast(AdditionalOutputs | CloseStream, data[1])
     return data, None
 
 
@@ -152,6 +179,8 @@ async def player_worker_decode(
                 cast(DataChannel, channel()).send(create_message("fetch_output", []))
 
             if frame is None:
+                if isinstance(outputs, CloseStream):
+                    await queue.put(outputs)
                 if quit_on_none:
                     await queue.put(None)
                     break
@@ -203,7 +232,8 @@ async def player_worker_decode(
                 processed_frame.time_base = audio_time_base
                 audio_samples += processed_frame.samples
                 await queue.put(processed_frame)
-
+            if isinstance(outputs, CloseStream):
+                await queue.put(outputs)
         except (TimeoutError, asyncio.TimeoutError):
             logger.warning(
                 "Timeout in frame processing cycle after %s seconds - resetting", 60
