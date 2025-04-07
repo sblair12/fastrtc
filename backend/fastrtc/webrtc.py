@@ -374,7 +374,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
                 else:
                     return await anyio.to_thread.run_sync(self.rtc_configuration)
             else:
-                return self.rtc_configuration
+                return self.rtc_configuration or {}
         except Exception as e:
             return {"error": str(e)}
 
