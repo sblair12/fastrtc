@@ -14,6 +14,7 @@ from fastrtc import (
     ReplyOnPause,
     Stream,
     get_cloudflare_turn_credentials,
+    get_cloudflare_turn_credentials_sync,
     get_stt_model,
 )
 from gradio.utils import get_space
@@ -75,7 +76,9 @@ stream = Stream(
     additional_outputs=[chatbot, state],
     additional_outputs_handler=lambda *a: (a[2], a[3]),
     concurrency_limit=20 if get_space() else None,
-    rtc_configuration=get_cloudflare_turn_credentials,
+    rtc_configuration=lambda: get_cloudflare_turn_credentials_sync(
+        hf_token=os.getenv("HF_TOKEN_ALT")
+    ),
 )
 
 app = FastAPI()
@@ -95,7 +98,9 @@ class InputData(BaseModel):
 
 @app.get("/")
 async def _():
-    rtc_config = get_cloudflare_turn_credentials() if get_space() else None
+    rtc_config = await get_cloudflare_turn_credentials(
+        hf_token=os.getenv("HF_TOKEN_ALT")
+    )
     html_content = (curr_dir / "index.html").read_text()
     html_content = html_content.replace("__RTC_CONFIGURATION__", json.dumps(rtc_config))
     return HTMLResponse(content=html_content)

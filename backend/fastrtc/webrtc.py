@@ -372,7 +372,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
                 if inspect.iscoroutinefunction(self.rtc_configuration):
                     return await self.rtc_configuration()
                 else:
-                    return anyio.to_thread.run_sync(self.rtc_configuration)
+                    return await anyio.to_thread.run_sync(self.rtc_configuration)
             else:
                 return self.rtc_configuration
         except Exception as e:

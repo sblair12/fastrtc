@@ -120,7 +120,7 @@ class Stream(WebRTCConnectionMixin):
             time_limit: Maximum execution time for the handler function in seconds.
             allow_extra_tracks: If True, allows connections with tracks not matching the modality.
             rtp_params: Optional dictionary of RTP encoding parameters.
-            rtc_configuration: Optional dictionary for RTCPeerConnection configuration (e.g., ICE servers).
+            rtc_configuration: Optional Callable or dictionary for RTCPeerConnection configuration (e.g., ICE servers).
                                Required when deploying on Colab or Spaces.
             track_constraints: Optional dictionary of constraints for media tracks (e.g., resolution, frame rate).
             additional_inputs: Optional list of extra Gradio input components.
