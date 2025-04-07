@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fastrtc"
-version = "0.0.19"
+version = "0.0.20.rc1"
 description = "The realtime communication library for Python"
 readme = "README.md"
 license = "MIT"
@@ -112,10 +112,7 @@ convention = "google"
 
 [tool.pyright]
 include = ["backend/fastrtc"]
-exclude = [
-  "**/__pycache__",
-  "**/*.pyi",
-]
+exclude = ["**/__pycache__", "**/*.pyi"]
 
 reportMissingImports = false
 reportMissingTypeStubs = false
