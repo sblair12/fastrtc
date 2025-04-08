@@ -9,14 +9,21 @@
         :root {
             --primary-gradient: linear-gradient(135deg, #f9a45c 0%, #e66465 100%);
             --background-cream: #faf8f5;
+            --background-cream-end: #f7f5f2;
+            /* Slightly warmer end color for body gradient */
             --text-dark: #2d2d2d;
+            --transcript-bg: #ffffff;
+            /* White background for transcript area */
+            --transcript-border: #e0e0e0;
+            /* Light border for transcript items */
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: var(--background-cream);
+            /* Apply a subtle vertical gradient to the body */
+            background: linear-gradient(to bottom, var(--background-cream), var(--background-cream-end));
             color: var(--text-dark);
             min-height: 100vh;
         }
@@ -43,18 +50,26 @@
 
         .container {
             max-width: 1000px;
-            margin: 1.5rem auto;
+            margin: 2.5rem auto;
+            /* Increased top/bottom margin */
             padding: 0 2rem;
         }
 
         .transcript-container {
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border-radius: 12px;
+            /* Slightly larger radius */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            /* Enhanced shadow */
             padding: 1.5rem;
-            height: 300px;
+            height: 350px;
+            /* Increased height */
             overflow-y: auto;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            /* Increased margin */
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            /* Softer border */
+            background-color: var(--transcript-bg);
+            /* Use the new variable */
         }
 
         .controls {
@@ -88,22 +103,39 @@
 
         /* Transcript text styling */
         .transcript-container p {
-            margin: 0.4rem 0;
-            padding: 0.6rem;
+            margin: 0.6rem 0;
+            /* Increased vertical margin */
+            padding: 0.8rem 1rem;
+            /* Increased padding */
             background: var(--background-cream);
-            border-radius: 4px;
-            line-height: 1.4;
-            font-size: 0.95rem;
+            /* Use the lighter cream for contrast */
+            border-radius: 6px;
+            /* Slightly larger radius */
+            line-height: 1.5;
+            /* Improved line spacing */
+            font-size: 0.98rem;
+            /* Slightly larger font */
+            border-left: 3px solid var(--transcript-border);
+            /* Add a subtle left border */
+            transition: background-color 0.2s ease;
+            /* Smooth hover effect */
         }
 
-        /* Custom scrollbar - made thinner */
+        .transcript-container p:hover {
+            background-color: #fdfbf9;
+            /* Slightly change background on hover */
+        }
+
+        /* Custom scrollbar - update track color */
         .transcript-container::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
+            /* Slightly wider scrollbar */
         }
 
         .transcript-container::-webkit-scrollbar-track {
-            background: var(--background-cream);
-            border-radius: 3px;
+            background: var(--background-cream-end);
+            /* Match body end gradient */
+            border-radius: 4px;
         }
 
         .transcript-container::-webkit-scrollbar-thumb {
@@ -414,6 +446,21 @@
                     updateButtonState();
                 });
 
+                peerConnection.onicecandidate = ({ candidate }) => {
+                    if (candidate) {
+                        console.debug("Sending ICE candidate", candidate);
+                        fetch('/webrtc/offer', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                candidate: candidate.toJSON(),
+                                webrtc_id: webrtc_id,
+                                type: "ice-candidate",
+                            })
+                        })
+                    }
+                };
+
                 // Create data channel for messages
                 const dataChannel = peerConnection.createDataChannel('text');
                 dataChannel.onmessage = handleMessage;
@@ -421,20 +468,6 @@
                 // Create and send offer
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
-
-                await new Promise((resolve) => {
-                    if (peerConnection.iceGatheringState === "complete") {
-                        resolve();
-                    } else {
-                        const checkState = () => {
-                            if (peerConnection.iceGatheringState === "complete") {
-                                peerConnection.removeEventListener("icegatheringstatechange", checkState);
-                                resolve();
-                            }
-                        };
-                        peerConnection.addEventListener("icegatheringstatechange", checkState);
-                    }
-                });
 
                 webrtc_id = Math.random().toString(36).substring(7);
 
