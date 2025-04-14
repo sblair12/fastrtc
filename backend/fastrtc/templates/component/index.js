@@ -22470,7 +22470,7 @@ function Bp(n, e, t) {
   const oe = (N) => {
     (N == null ? void 0 : N.type) === "info" || (N == null ? void 0 : N.type) === "warning" || (N == null ? void 0 : N.type) === "error" ? b.dispatch(
       (N == null ? void 0 : N.type) === "error" ? "error" : "warning",
-      N.message
+      N.data
     ) : (N == null ? void 0 : N.type) === "end_stream" ? b.dispatch("warning", N.data) : (N == null ? void 0 : N.type) === "fetch_output" ? b.dispatch("state_change") : (N == null ? void 0 : N.type) === "send_input" ? b.dispatch("tick") : (N == null ? void 0 : N.type) === "connection_timeout" && b.dispatch("warning", "Taking a while to connect. Are you on a VPN?"), N.type === "state_change" && b.dispatch(N === "change" ? "state_change" : "tick");
   }, q = (N) => {
     var le, qt;
