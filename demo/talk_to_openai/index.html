@@ -45,20 +45,26 @@
 
         .message {
             margin-bottom: 20px;
-            padding: 12px;
-            border-radius: 4px;
+            padding: 12px 16px;
+            border-radius: 8px;
             font-size: 16px;
             line-height: 1.5;
+            max-width: 70%;
+            clear: both;
         }
 
         .message.user {
-            background-color: #1a1a1a;
-            margin-left: 20%;
+            background-color: #2c2c2c;
+            float: right;
+            border-bottom-right-radius: 2px;
+            border: 1px solid #404040;
         }
 
         .message.assistant {
             background-color: #262626;
-            margin-right: 20%;
+            float: left;
+            border-bottom-left-radius: 2px;
+            border: 1px solid #333;
         }
 
         .controls {
@@ -435,7 +441,7 @@
                 const eventSource = new EventSource('/outputs?webrtc_id=' + webrtc_id);
                 eventSource.addEventListener("output", (event) => {
                     const eventJson = JSON.parse(event.data);
-                    addMessage("assistant", eventJson.content);
+                    addMessage(eventJson.role, eventJson.content);
 
                 });
             } catch (err) {

@@ -50,15 +50,32 @@ class OpenAIHandler(AsyncStreamHandler):
             model="gpt-4o-mini-realtime-preview-2024-12-17"
         ) as conn:
             await conn.session.update(
-                session={"turn_detection": {"type": "server_vad"}}
+                session={
+                    "turn_detection": {"type": "server_vad"},
+                    "input_audio_transcription": {
+                        "model": "whisper-1",
+                        "language": "en",
+                    },
+                }
             )
             self.connection = conn
             async for event in self.connection:
                 # Handle interruptions
                 if event.type == "input_audio_buffer.speech_started":
                     self.clear_queue()
+                if (
+                    event.type
+                    == "conversation.item.input_audio_transcription.completed"
+                ):
+                    await self.output_queue.put(
+                        AdditionalOutputs({"role": "user", "content": event.transcript})
+                    )
                 if event.type == "response.audio_transcript.done":
-                    await self.output_queue.put(AdditionalOutputs(event))
+                    await self.output_queue.put(
+                        AdditionalOutputs(
+                            {"role": "assistant", "content": event.transcript}
+                        )
+                    )
                 if event.type == "response.audio.delta":
                     await self.output_queue.put(
                         (
@@ -124,7 +141,7 @@ def _(webrtc_id: str):
         import json
 
         async for output in stream.output_stream(webrtc_id):
-            s = json.dumps({"role": "assistant", "content": output.args[0].transcript})
+            s = json.dumps(output.args[0])
             yield f"event: output\ndata: {s}\n\n"
 
     return StreamingResponse(output_stream(), media_type="text/event-stream")
