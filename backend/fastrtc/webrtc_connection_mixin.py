@@ -9,6 +9,7 @@ from collections import defaultdict
 from collections.abc import AsyncGenerator, Callable
 from dataclasses import dataclass, field
 from typing import (
+    Any,
     Literal,
     ParamSpec,
     TypeVar,
@@ -16,11 +17,14 @@ from typing import (
 )
 
 from aiortc import (
+    RTCConfiguration,
     RTCIceCandidate,
+    RTCIceServer,
     RTCPeerConnection,
     RTCSessionDescription,
 )
 from aiortc.contrib.media import MediaRelay  # type: ignore
+from anyio.to_thread import run_sync
 from fastapi.responses import JSONResponse
 
 from fastrtc.tracks import (
@@ -37,6 +41,7 @@ from fastrtc.tracks import (
 from fastrtc.utils import (
     AdditionalOutputs,
     Context,
+    RTCConfigurationCallable,
     create_message,
     webrtc_error_handler,
 )
@@ -80,6 +85,7 @@ class WebRTCConnectionMixin:
         self.modality: Literal["video", "audio", "audio-video"]
         self.mode: Literal["send", "receive", "send-receive"]
         self.allow_extra_tracks: bool
+        self.rtc_configuration: dict[str, Any] | None | RTCConfigurationCallable | None
 
     @staticmethod
     async def wait_for_time_limit(pc: RTCPeerConnection, time_limit: float):
@@ -147,6 +153,15 @@ class WebRTCConnectionMixin:
             self.additional_outputs[webrtc_id].queue.put_nowait(outputs)
 
         return set_outputs
+
+    async def resolve_rtc_configuration(self) -> dict[str, Any] | None:
+        if inspect.isfunction(self.rtc_configuration):
+            if inspect.iscoroutinefunction(self.rtc_configuration):
+                return await self.rtc_configuration()
+            else:
+                return await run_sync(self.rtc_configuration)
+        else:
+            return cast(dict[str, Any], self.rtc_configuration) or {}
 
     async def handle_offer(self, body, set_outputs):
         logger.debug("Starting to handle offer")
@@ -253,7 +268,19 @@ class WebRTCConnectionMixin:
 
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
 
-        pc = RTCPeerConnection()
+        rtc_config = await self.resolve_rtc_configuration()
+        if rtc_config is not None:
+            rtc_config = RTCConfiguration(
+                iceServers=[
+                    RTCIceServer(
+                        urls=server["urls"],
+                        username=server.get("username"),
+                        credential=server.get("credential"),
+                    )
+                    for server in rtc_config.get("iceServers", [])
+                ]
+            )
+        pc = RTCPeerConnection(configuration=rtc_config)
         self.pcs[body["webrtc_id"]] = pc
 
         if isinstance(self.event_handler, StreamHandlerImpl):

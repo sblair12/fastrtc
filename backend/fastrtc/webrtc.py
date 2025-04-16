@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import inspect
 import logging
 from collections.abc import Callable, Iterable, Sequence
 from typing import (
@@ -15,8 +14,6 @@ from typing import (
     cast,
 )
 
-import anyio
-import anyio.to_thread
 from gradio import wasm_utils
 from gradio.components.base import Component, server
 from gradio_client import handle_file
@@ -238,7 +235,6 @@ class WebRTC(Component, WebRTCConnectionMixin):
             inputs = list(inputs)
 
         async def handler(webrtc_id: str, *args):
-            print("webrtc_id", webrtc_id)
             async for next_outputs in self.output_stream(webrtc_id):
                 yield fn(*args, *next_outputs.args)  # type: ignore
 
@@ -366,13 +362,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
     @server
     async def turn(self, _):
         try:
-            if inspect.isfunction(self.rtc_configuration):
-                if inspect.iscoroutinefunction(self.rtc_configuration):
-                    return await self.rtc_configuration()
-                else:
-                    return await anyio.to_thread.run_sync(self.rtc_configuration)
-            else:
-                return self.rtc_configuration or {}
+            return await self.resolve_rtc_configuration()
         except Exception as e:
             return {"error": str(e)}
 
