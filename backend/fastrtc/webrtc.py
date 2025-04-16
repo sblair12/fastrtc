@@ -79,6 +79,7 @@ class WebRTC(Component, WebRTCConnectionMixin):
         key: int | str | None = None,
         mirror_webcam: bool = True,
         rtc_configuration: dict[str, Any] | None | RTCConfigurationCallable = None,
+        server_rtc_configuration: dict[str, Any] | None = None,
         track_constraints: dict[str, Any] | None = None,
         time_limit: float | None = None,
         allow_extra_tracks: bool = False,
@@ -131,6 +132,9 @@ class WebRTC(Component, WebRTCConnectionMixin):
         self.mirror_webcam = mirror_webcam
         self.concurrency_limit = 1
         self.rtc_configuration = rtc_configuration
+        self.server_rtc_configuration = self.convert_to_aiortc_format(
+            server_rtc_configuration
+        )
         self.allow_extra_tracks = allow_extra_tracks
         self.mode = mode
         self.modality = modality

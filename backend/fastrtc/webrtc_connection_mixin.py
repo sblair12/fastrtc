@@ -86,11 +86,30 @@ class WebRTCConnectionMixin:
         self.mode: Literal["send", "receive", "send-receive"]
         self.allow_extra_tracks: bool
         self.rtc_configuration: dict[str, Any] | None | RTCConfigurationCallable | None
+        self.server_rtc_configuration: RTCConfiguration | None
 
     @staticmethod
     async def wait_for_time_limit(pc: RTCPeerConnection, time_limit: float):
         await asyncio.sleep(time_limit)
         await pc.close()
+
+    @staticmethod
+    def convert_to_aiortc_format(
+        rtc_configuration: dict[str, Any] | None,
+    ) -> RTCConfiguration | None:
+        rtc_config = rtc_configuration
+        if rtc_config is not None:
+            rtc_config = RTCConfiguration(
+                iceServers=[
+                    RTCIceServer(
+                        urls=server["urls"],
+                        username=server.get("username"),
+                        credential=server.get("credential"),
+                    )
+                    for server in rtc_config.get("iceServers", [])
+                ]
+            )
+        return rtc_config
 
     async def connection_timeout(
         self,
@@ -268,19 +287,7 @@ class WebRTCConnectionMixin:
 
         offer = RTCSessionDescription(sdp=body["sdp"], type=body["type"])
 
-        rtc_config = await self.resolve_rtc_configuration()
-        if rtc_config is not None:
-            rtc_config = RTCConfiguration(
-                iceServers=[
-                    RTCIceServer(
-                        urls=server["urls"],
-                        username=server.get("username"),
-                        credential=server.get("credential"),
-                    )
-                    for server in rtc_config.get("iceServers", [])
-                ]
-            )
-        pc = RTCPeerConnection(configuration=rtc_config)
+        pc = RTCPeerConnection(configuration=self.server_rtc_configuration)
         self.pcs[body["webrtc_id"]] = pc
 
         if isinstance(self.event_handler, StreamHandlerImpl):

@@ -102,6 +102,7 @@ class Stream(WebRTCConnectionMixin):
         allow_extra_tracks: bool = False,
         rtp_params: dict[str, Any] | None = None,
         rtc_configuration: RTCConfigurationCallable | None = None,
+        server_rtc_configuration: dict[str, Any] | None = None,
         track_constraints: dict[str, Any] | None = None,
         additional_inputs: list[Component] | None = None,
         additional_outputs: list[Component] | None = None,
@@ -149,6 +150,9 @@ class Stream(WebRTCConnectionMixin):
         self.track_constraints = track_constraints
         self.webrtc_component: WebRTC
         self.rtc_configuration = rtc_configuration
+        self.server_rtc_configuration = self.convert_to_aiortc_format(
+            server_rtc_configuration
+        )
         self._ui = self._generate_default_ui(ui_args)
         self._ui.launch = self._wrap_gradio_launch(self._ui.launch)
 
