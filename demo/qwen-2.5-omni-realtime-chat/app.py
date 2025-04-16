@@ -24,7 +24,6 @@ load_dotenv()
 
 cur_dir = Path(__file__).parent
 
-SAMPLE_RATE = 16_000
 API_KEY = os.getenv("MODELSCOPE_API_KEY", "")
 API_URL = "wss://dashscope.aliyuncs.com/api-ws/v1/realtime?model=qwen-omni-turbo-realtime-2025-03-26"
 VOICES = ["Chelsie", "Serena", "Ethan", "Cherry"]
@@ -37,8 +36,8 @@ class QwenOmniHandler(AsyncStreamHandler):
     ) -> None:
         super().__init__(
             expected_layout="mono",
-            output_sample_rate=SAMPLE_RATE,
-            input_sample_rate=SAMPLE_RATE,
+            output_sample_rate=24_000,
+            input_sample_rate=16_000,
         )
         self.connection = None
         self.output_queue = asyncio.Queue()
@@ -81,7 +80,6 @@ class QwenOmniHandler(AsyncStreamHandler):
             self.connection = conn
             async for data in self.connection:
                 event = json.loads(data)
-                print(event)
                 if "type" not in event:
                     continue
                 # Handle interruptions
@@ -107,7 +105,7 @@ class QwenOmniHandler(AsyncStreamHandler):
                         (
                             self.output_sample_rate,
                             np.frombuffer(
-                                base64.b64decode(event.delta), dtype=np.int16
+                                base64.b64decode(event["delta"]), dtype=np.int16
                             ).reshape(1, -1),
                         ),
                     )
@@ -143,12 +141,13 @@ def update_chatbot(chatbot: list[dict], response: dict):
 
 
 chatbot = gr.Chatbot(type="messages")
+voice = gr.Dropdown(choices=VOICES, value=VOICES[0], type="value", label="Voice")
 latest_message = gr.Textbox(type="text", visible=False)
 stream = Stream(
     QwenOmniHandler(),
     mode="send-receive",
     modality="audio",
-    additional_inputs=[chatbot],
+    additional_inputs=[voice, chatbot],
     additional_outputs=[chatbot],
     additional_outputs_handler=update_chatbot,
     rtc_configuration=get_cloudflare_turn_credentials_async if get_space() else None,
