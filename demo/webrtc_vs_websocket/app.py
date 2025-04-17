@@ -83,7 +83,7 @@ chatbot = gr.Chatbot(type="messages")
 stream = Stream(
     modality="audio",
     mode="send-receive",
-    handler=ReplyOnPause(response),
+    handler=ReplyOnPause(response, input_sample_rate=24_000, output_sample_rate=24_000),
     additional_outputs_handler=lambda a, b: b,
     additional_inputs=[chatbot],
     additional_outputs=[chatbot],
