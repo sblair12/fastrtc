@@ -113,6 +113,8 @@ class WebRTC(Component, WebRTCConnectionMixin):
             key: if assigned, will be used to assume identity across a re-render. Components that have the same key across a re-render will have their value preserved.
             mirror_webcam: if True webcam will be mirrored. Default is True.
             rtc_configuration: WebRTC configuration options. See https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/RTCPeerConnection . If running the demo on a remote server, you will need to specify a rtc_configuration. See https://freddyaboulton.github.io/gradio-webrtc/deployment/
+            server_rtc_configuration: Optional dictionary for RTCPeerConnection configuration on the server side. Note
+                                      that setting iceServers to be an empty list will mean no ICE servers will be used in the server.
             track_constraints: Media track constraints for WebRTC. For example, to set video height, width use {"width": {"exact": 800}, "height": {"exact": 600}, "aspectRatio": {"exact": 1.33333}}
             time_limit: Maximum duration in seconds for recording.
             allow_extra_tracks: Allow tracks not supported by the modality. For example, a peer connection with an audio track would be allowed even if modality is 'video', which normally throws a ``ValueError`` exception.

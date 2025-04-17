@@ -122,6 +122,8 @@ class Stream(WebRTCConnectionMixin):
             rtp_params: Optional dictionary of RTP encoding parameters.
             rtc_configuration: Optional Callable or dictionary for RTCPeerConnection configuration (e.g., ICE servers).
                                Required when deploying on Colab or Spaces.
+            server_rtc_configuration: Optional dictionary for RTCPeerConnection configuration on the server side. Note
+                                      that setting iceServers to be an empty list will mean no ICE servers will be used in the server.
             track_constraints: Optional dictionary of constraints for media tracks (e.g., resolution, frame rate).
             additional_inputs: Optional list of extra Gradio input components.
             additional_outputs: Optional list of extra Gradio output components. Requires `additional_outputs_handler`.

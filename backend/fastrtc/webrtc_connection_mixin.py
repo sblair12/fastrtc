@@ -203,13 +203,9 @@ class WebRTCConnectionMixin:
             pc = self.pcs[webrtc_id]
             if pc.connectionState != "closed":
                 try:
-                    # Parse the candidate string from the browser
                     candidate_str = body["candidate"].get("candidate", "")
 
                     # Example format: "candidate:2393089663 1 udp 2122260223 192.168.86.60 63692 typ host generation 0 ufrag LkZb network-id 1 network-cost 10"
-                    # We need to parse this string to extract the required fields
-
-                    # Parse the candidate string
                     parts = candidate_str.split()
                     if len(parts) >= 10 and parts[0].startswith("candidate:"):
                         foundation = parts[0].split(":", 1)[1]
