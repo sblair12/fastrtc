@@ -43,7 +43,9 @@ def convert_to_mulaw(
     audio_data = audio_to_float32(audio_data)
 
     if original_rate != target_rate:
-        audio_data = librosa.resample(audio_data, orig_sr=original_rate, target_sr=8000)
+        audio_data = librosa.resample(
+            audio_data, orig_sr=original_rate, target_sr=target_rate
+        )
 
     audio_data = audio_to_int16(audio_data)
 
@@ -128,7 +130,10 @@ class WebSocketHandler:
                         audioop.ulaw2lin(audio_payload, 2), dtype=np.int16
                     )
 
-                    if self.stream_handler.input_sample_rate != 8000:
+                    if (
+                        self.stream_handler.phone_mode
+                        and self.stream_handler.input_sample_rate != 8000
+                    ):
                         audio_array = audio_to_float32(audio_array)
                         audio_array = librosa.resample(
                             audio_array,
@@ -269,14 +274,15 @@ class WebSocketHandler:
 
                     if not isinstance(frame, tuple):
                         continue
-
                     target_rate = (
-                        self.stream_handler.output_sample_rate
-                        if not self.stream_handler.phone_mode
-                        else 8000
+                        8_000
+                        if self.stream_handler.phone_mode
+                        else self.stream_handler.output_sample_rate
                     )
                     mulaw_audio = convert_to_mulaw(
-                        frame[1], frame[0], target_rate=target_rate
+                        frame[1],
+                        frame[0],
+                        target_rate=target_rate,
                     )
                     audio_payload = base64.b64encode(mulaw_audio).decode("utf-8")
 
