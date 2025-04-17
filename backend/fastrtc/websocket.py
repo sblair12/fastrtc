@@ -81,16 +81,10 @@ class WebSocketHandler:
         self._graceful_shutdown_task: asyncio.Task | None = None
 
     def _clear_queue(self):
-        old_queue = self.queue
-        self.queue = asyncio.Queue()
-        logger.debug("clearing queue")
         i = 0
-        while not old_queue.empty():
-            try:
-                old_queue.get_nowait()
-                i += 1
-            except asyncio.QueueEmpty:
-                break
+        while not self.queue.empty():
+            self.queue.get_nowait()
+            i += 1
         logger.debug("popped %d items from queue", i)
 
     def set_args(self, args: list[Any]):
@@ -261,7 +255,6 @@ class WebSocketHandler:
         try:
             while not self.quit.is_set():
                 output = await self.queue.get()
-
                 if output is not None:
                     frame, output = split_output(output)
                     if isinstance(output, AdditionalOutputs):
