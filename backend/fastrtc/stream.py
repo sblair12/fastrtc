@@ -928,6 +928,7 @@ class Stream(WebRTCConnectionMixin):
                 json={"url": host},
                 headers={"Authorization": token or get_token() or ""},
             )
+            r.raise_for_status()
         except Exception:
             URL = "https://fastrtc-fastphone.hf.space"
             r = httpx.post(

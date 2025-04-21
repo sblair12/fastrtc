@@ -85,7 +85,7 @@ class WebSocketHandler:
         while not self.queue.empty():
             self.queue.get_nowait()
             i += 1
-        logger.debug("popped %d items from queue", i)
+        logger.debug("websocket: popped %d items from queue", i)
 
     def set_args(self, args: list[Any]):
         self.stream_handler.set_args(args)
@@ -254,6 +254,7 @@ class WebSocketHandler:
     async def _emit_loop(self):
         try:
             while not self.quit.is_set():
+                wait_duration = 0.02
                 output = await self.queue.get()
                 if output is not None:
                     frame, output = split_output(output)
@@ -272,6 +273,7 @@ class WebSocketHandler:
                         if self.stream_handler.phone_mode
                         else self.stream_handler.output_sample_rate
                     )
+                    duration = np.atleast_2d(frame[1]).shape[1] / frame[0]
                     mulaw_audio = convert_to_mulaw(
                         frame[1],
                         frame[0],
@@ -280,9 +282,6 @@ class WebSocketHandler:
                     audio_payload = base64.b64encode(mulaw_audio).decode("utf-8")
 
                     if self.websocket and self.stream_id:
-                        sample_rate, audio_array = frame[:2]
-                        duration = len(audio_array) / sample_rate
-
                         self.playing_durations.append(duration)
 
                         payload = {
@@ -291,9 +290,9 @@ class WebSocketHandler:
                         }
                         if self.stream_handler.phone_mode:
                             payload["streamSid"] = self.stream_id
+                            wait_duration = 0.9 * duration
                         await self.websocket.send_json(payload)
-
-                await asyncio.sleep(0.02)
+                await asyncio.sleep(wait_duration)
 
         except asyncio.CancelledError:
             logger.debug("Emit loop cancelled")
