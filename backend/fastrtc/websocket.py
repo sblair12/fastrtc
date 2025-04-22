@@ -290,7 +290,8 @@ class WebSocketHandler:
                         }
                         if self.stream_handler.phone_mode:
                             payload["streamSid"] = self.stream_id
-                            wait_duration = 0.9 * duration
+                            # yield audio slightly faster than real-time
+                            wait_duration = 0.75 * duration
                         await self.websocket.send_json(payload)
                 await asyncio.sleep(wait_duration)
 
