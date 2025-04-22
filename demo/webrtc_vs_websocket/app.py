@@ -76,7 +76,7 @@ def response(
     )
     for chunk in aggregate_bytes_to_16bit(iterator):
         audio_array = np.frombuffer(chunk, dtype=np.int16).reshape(1, -1)
-        yield (24000, audio_array, "mono")
+        yield (24000, audio_array)
 
 
 chatbot = gr.Chatbot(type="messages")
