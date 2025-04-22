@@ -6,12 +6,14 @@ from io import BytesIO
 
 import gradio as gr
 import numpy as np
+import websockets
 from dotenv import load_dotenv
 from fastrtc import (
     AsyncAudioVideoStreamHandler,
     Stream,
     WebRTC,
-    get_twilio_turn_credentials,
+    get_turn_credentials_async,
+    wait_for_item,
 )
 from google import genai
 from gradio.utils import get_space
@@ -67,10 +69,14 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
             print("set session")
             while not self.quit.is_set():
                 turn = self.session.receive()
-                async for response in turn:
-                    if data := response.data:
-                        audio = np.frombuffer(data, dtype=np.int16).reshape(1, -1)
+                try:
+                    async for response in turn:
+                        if data := response.data:
+                            audio = np.frombuffer(data, dtype=np.int16).reshape(1, -1)
                         self.audio_queue.put_nowait(audio)
+                except websockets.exceptions.ConnectionClosedOK:
+                    print("connection closed")
+                    break
 
     async def video_receive(self, frame: np.ndarray):
         if self.session:
@@ -85,7 +91,11 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
         self.video_queue.put_nowait(frame)
 
     async def video_emit(self):
-        return await self.video_queue.get()
+        frame = await wait_for_item(self.video_queue)
+        if frame is not None:
+            return frame
+        else:
+            return np.zeros((100, 100, 3), dtype=np.uint8)
 
     async def receive(self, frame: tuple[int, np.ndarray]) -> None:
         _, array = frame
@@ -95,13 +105,14 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
             await self.session.send(input=audio_message)
 
     async def emit(self):
-        array = await self.audio_queue.get()
-        return (self.output_sample_rate, array)
+        array = await wait_for_item(self.audio_queue)
+        if array is not None:
+            return (self.output_sample_rate, array)
 
     async def shutdown(self) -> None:
         if self.session:
             self.quit.set()
-            await self.session._websocket.close()
+            await self.session.close()
             self.quit.clear()
 
 
@@ -109,9 +120,7 @@ stream = Stream(
     handler=GeminiHandler(),
     modality="audio-video",
     mode="send-receive",
-    rtc_configuration=get_twilio_turn_credentials()
-    if get_space() == "spaces"
-    else None,
+    rtc_configuration=get_turn_credentials_async if get_space() == "spaces" else None,
     time_limit=90 if get_space() else None,
     additional_inputs=[
         gr.Image(label="Image", type="numpy", sources=["upload", "clipboard"])
@@ -151,7 +160,7 @@ with gr.Blocks(css=css) as demo:
                 modality="audio-video",
                 mode="send-receive",
                 elem_id="video-source",
-                rtc_configuration=get_twilio_turn_credentials()
+                rtc_configuration=get_turn_credentials_async
                 if get_space() == "spaces"
                 else None,
                 icon="https://www.gstatic.com/lamda/images/gemini_favicon_f069958c85030456e93de685481c559f160ea06b.png",
