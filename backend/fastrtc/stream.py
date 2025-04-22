@@ -937,6 +937,14 @@ class Stream(WebRTCConnectionMixin):
                 headers={"Authorization": token or get_token() or ""},
             )
         r.raise_for_status()
+        if r.status_code == 202:
+            print(
+                click.style("INFO", fg="orange")
+                + ":\t  You have "
+                + "run out of your quota"
+            )
+            return
+
         data = r.json()
         code = f"{data['code']}"
         phone_number = data["phone"]
