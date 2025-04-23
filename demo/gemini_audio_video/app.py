@@ -13,6 +13,7 @@ from fastrtc import (
     Stream,
     WebRTC,
     get_cloudflare_turn_credentials_async,
+    wait_for_item,
 )
 from google import genai
 from gradio.utils import get_space
@@ -62,7 +63,8 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
         )
         config = {"response_modalities": ["AUDIO"]}
         async with client.aio.live.connect(
-            model="gemini-2.0-flash-exp", config=config
+            model="gemini-2.0-flash-exp",
+            config=config,  # type: ignore
         ) as session:
             self.session = session
             while not self.quit.is_set():
@@ -77,6 +79,8 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
                     break
 
     async def video_receive(self, frame: np.ndarray):
+        self.video_queue.put_nowait(frame)
+
         if self.session:
             # send image every 1 second
             print(time.time() - self.last_frame_time)
@@ -86,10 +90,8 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
                 if self.latest_args[1] is not None:
                     await self.session.send(input=encode_image(self.latest_args[1]))
 
-        self.video_queue.put_nowait(frame)
-
     async def video_emit(self):
-        frame = await self.video_queue.get()
+        frame = await wait_for_item(self.video_queue, 0.01)
         if frame is not None:
             return frame
         else:
@@ -103,8 +105,10 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
             await self.session.send(input=audio_message)
 
     async def emit(self):
-        array = await self.audio_queue.get()
-        return (self.output_sample_rate, array)
+        array = await wait_for_item(self.audio_queue, 0.01)
+        if array is not None:
+            return (self.output_sample_rate, array)
+        return array
 
     async def shutdown(self) -> None:
         if self.session:
@@ -118,7 +122,7 @@ stream = Stream(
     modality="audio-video",
     mode="send-receive",
     rtc_configuration=get_cloudflare_turn_credentials_async,
-    time_limit=90 if get_space() else None,
+    time_limit=180 if get_space() else None,
     additional_inputs=[
         gr.Image(label="Image", type="numpy", sources=["upload", "clipboard"])
     ],
@@ -171,7 +175,7 @@ with gr.Blocks(css=css) as demo:
             GeminiHandler(),
             inputs=[webrtc, image_input],
             outputs=[webrtc],
-            time_limit=60 if get_space() else None,
+            time_limit=180 if get_space() else None,
             concurrency_limit=2 if get_space() else None,
         )
 
