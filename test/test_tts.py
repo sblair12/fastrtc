@@ -1,5 +1,4 @@
 import pytest
-
 from fastrtc.text_to_speech.tts import get_tts_model
 
 
