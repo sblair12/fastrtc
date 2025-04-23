@@ -7056,12 +7056,12 @@ var On = function(e, t, r) {
   r && (R *= a.sizeMultiplier);
   var L = B / 2 - R, W = [];
   if (m.length > 0) {
-    var oe = B - w - y, q = Math.round(B * 1e3), ue = Q2(m, Math.round(oe * 1e3)), ie = new Lr(m, ue), we = (f / 1e3).toFixed(3) + "em", de = (q / 1e3).toFixed(3) + "em", ke = new vr([ie], {
+    var oe = B - w - y, q = Math.round(B * 1e3), ue = Q2(m, Math.round(oe * 1e3)), ie = new Lr(m, ue), we = (f / 1e3).toFixed(3) + "em", me = (q / 1e3).toFixed(3) + "em", ke = new vr([ie], {
       width: we,
-      height: de,
+      height: me,
       viewBox: "0 0 " + f + " " + q
     }), De = M.makeSvgSpan([], [ke], a);
-    De.height = q / 1e3, De.style.width = we, De.style.height = de, W.push({
+    De.height = q / 1e3, De.style.width = we, De.style.height = me, W.push({
       type: "elem",
       elem: De
     });
@@ -7075,12 +7075,12 @@ var On = function(e, t, r) {
     }
     W.push(Ra), W.push(kl(s, p, i));
   }
-  var me = a.havingBaseStyle(re.TEXT), Le = M.makeVList({
+  var pe = a.havingBaseStyle(re.TEXT), Le = M.makeVList({
     positionType: "bottom",
     positionData: L,
     children: W
-  }, me);
-  return Is(M.makeSpan(["delimsizing", "mult"], [Le], me), re.TEXT, a, l);
+  }, pe);
+  return Is(M.makeSpan(["delimsizing", "mult"], [Le], pe), re.TEXT, a, l);
 }, Al = 80, El = 0.08, Sl = function(e, t, r, a, i) {
   var l = Z2(e, a, r), s = new Lr(e, l), o = new vr([s], {
     // Note: 1000:1 ratio of viewBox to document em width.
@@ -7795,8 +7795,8 @@ var N0 = function(e, t) {
   var W = y / 2 + t.fontMetrics().axisHeight, oe = e.cols || [], q = [], ue, ie, we = [];
   if (e.tags && e.tags.some((N) => N))
     for (r = 0; r < i; ++r) {
-      var de = o[r], ke = de.pos - W, De = e.tags[r], te = void 0;
-      De === !0 ? te = M.makeSpan(["eqn-num"], [], t) : De === !1 ? te = M.makeSpan([], [], t) : te = M.makeSpan([], gt(De, t, !0), t), te.depth = de.depth, te.height = de.height, we.push({
+      var me = o[r], ke = me.pos - W, De = e.tags[r], te = void 0;
+      De === !0 ? te = M.makeSpan(["eqn-num"], [], t) : De === !1 ? te = M.makeSpan([], [], t) : te = M.makeSpan([], gt(De, t, !0), t), te.depth = me.depth, te.height = me.height, we.push({
         type: "elem",
         elem: te,
         shift: ke
@@ -7809,35 +7809,35 @@ var N0 = function(e, t) {
     a < s || ie < oe.length;
     ++a, ++ie
   ) {
-    for (var ae = oe[ie] || {}, me = !0; ae.type === "separator"; ) {
-      if (me || (ue = M.makeSpan(["arraycolsep"], []), ue.style.width = G(t.fontMetrics().doubleRuleSep), q.push(ue)), ae.separator === "|" || ae.separator === ":") {
+    for (var ae = oe[ie] || {}, pe = !0; ae.type === "separator"; ) {
+      if (pe || (ue = M.makeSpan(["arraycolsep"], []), ue.style.width = G(t.fontMetrics().doubleRuleSep), q.push(ue)), ae.separator === "|" || ae.separator === ":") {
         var Le = ae.separator === "|" ? "solid" : "dashed", H = M.makeSpan(["vertical-separator"], [], t);
         H.style.height = G(y), H.style.borderRightWidth = G(h), H.style.borderRightStyle = Le, H.style.margin = "0 " + G(-h / 2);
         var U = y - W;
         U && (H.style.verticalAlign = G(-U)), q.push(H);
       } else
         throw new J("Invalid separator type: " + ae.separator);
-      ie++, ae = oe[ie] || {}, me = !1;
+      ie++, ae = oe[ie] || {}, pe = !1;
     }
     if (!(a >= s)) {
-      var ve = void 0;
-      (a > 0 || e.hskipBeforeAndAfter) && (ve = ee.deflt(ae.pregap, f), ve !== 0 && (ue = M.makeSpan(["arraycolsep"], []), ue.style.width = G(ve), q.push(ue)));
-      var _e = [];
+      var fe = void 0;
+      (a > 0 || e.hskipBeforeAndAfter) && (fe = ee.deflt(ae.pregap, f), fe !== 0 && (ue = M.makeSpan(["arraycolsep"], []), ue.style.width = G(fe), q.push(ue)));
+      var ve = [];
       for (r = 0; r < i; ++r) {
         var Se = o[r], Be = Se[a];
         if (Be) {
           var Ie = Se.pos - W;
-          Be.depth = Se.depth, Be.height = Se.height, _e.push({
+          Be.depth = Se.depth, Be.height = Se.height, ve.push({
             type: "elem",
             elem: Be,
             shift: Ie
           });
         }
       }
-      _e = M.makeVList({
+      ve = M.makeVList({
         positionType: "individualShift",
-        children: _e
-      }, t), _e = M.makeSpan(["col-align-" + (ae.align || "c")], [_e]), q.push(_e), (a < s - 1 || e.hskipBeforeAndAfter) && (ve = ee.deflt(ae.postgap, f), ve !== 0 && (ue = M.makeSpan(["arraycolsep"], []), ue.style.width = G(ve), q.push(ue)));
+        children: ve
+      }, t), ve = M.makeSpan(["col-align-" + (ae.align || "c")], [ve]), q.push(ve), (a < s - 1 || e.hskipBeforeAndAfter) && (fe = ee.deflt(ae.postgap, f), fe !== 0 && (ue = M.makeSpan(["arraycolsep"], []), ue.style.width = G(fe), q.push(ue)));
     }
   }
   if (o = M.makeSpan(["mtable"], q), c.length > 0) {
@@ -13037,8 +13037,8 @@ var Eu = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : t
               var ie = L.pattern.toString().match(/[imsuy]*$/)[0];
               L.pattern = RegExp(L.pattern.source, ie + "g");
             }
-            for (var we = L.pattern || L, de = F.next, ke = T; de !== y.tail && !(z && ke >= z.reach); ke += de.value.length, de = de.next) {
-              var De = de.value;
+            for (var we = L.pattern || L, me = F.next, ke = T; me !== y.tail && !(z && ke >= z.reach); ke += me.value.length, me = me.next) {
+              var De = me.value;
               if (y.length > b.length)
                 return;
               if (!(De instanceof o)) {
@@ -13046,27 +13046,27 @@ var Eu = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : t
                 if (q) {
                   if (ae = c(we, ke, b, oe), !ae || ae.index >= b.length)
                     break;
-                  var U = ae.index, me = ae.index + ae[0].length, Le = ke;
-                  for (Le += de.value.length; U >= Le; )
-                    de = de.next, Le += de.value.length;
-                  if (Le -= de.value.length, ke = Le, de.value instanceof o)
+                  var U = ae.index, pe = ae.index + ae[0].length, Le = ke;
+                  for (Le += me.value.length; U >= Le; )
+                    me = me.next, Le += me.value.length;
+                  if (Le -= me.value.length, ke = Le, me.value instanceof o)
                     continue;
-                  for (var H = de; H !== y.tail && (Le < me || typeof H.value == "string"); H = H.next)
+                  for (var H = me; H !== y.tail && (Le < pe || typeof H.value == "string"); H = H.next)
                     te++, Le += H.value.length;
                   te--, De = b.slice(ke, Le), ae.index -= ke;
                 } else if (ae = c(we, 0, De, oe), !ae)
                   continue;
-                var U = ae.index, ve = ae[0], _e = De.slice(0, U), Se = De.slice(U + ve.length), Be = ke + De.length;
+                var U = ae.index, fe = ae[0], ve = De.slice(0, U), Se = De.slice(U + fe.length), Be = ke + De.length;
                 z && Be > z.reach && (z.reach = Be);
-                var Ie = de.prev;
-                _e && (Ie = f(y, Ie, _e), ke += _e.length), p(y, Ie, te);
-                var Ye = new o(I, W ? s.tokenize(ve, W) : ve, ue, ve);
-                if (de = f(y, Ie, Ye), Se && f(y, de, Se), te > 1) {
+                var Ie = me.prev;
+                ve && (Ie = f(y, Ie, ve), ke += ve.length), p(y, Ie, te);
+                var Ye = new o(I, W ? s.tokenize(fe, W) : fe, ue, fe);
+                if (me = f(y, Ie, Ye), Se && f(y, me, Se), te > 1) {
                   var ct = {
                     cause: I + "," + R,
                     reach: Be
                   };
-                  h(b, y, E, de.prev, ke, ct), z && ct.reach > z.reach && (z.reach = ct.reach);
+                  h(b, y, E, me.prev, ke, ct), z && ct.reach > z.reach && (z.reach = ct.reach);
                 }
               }
             }
@@ -15908,7 +15908,7 @@ function I5(n, e, t) {
   this && this.__awaiter;
   const l = _5();
   let { i18n: s } = e, { eta: o = null } = e, { queue_position: c } = e, { queue_size: h } = e, { status: m } = e, { scroll_to_output: f = !1 } = e, { timer: p = !0 } = e, { show_progress: v = "full" } = e, { message: w = null } = e, { progress: S = null } = e, { variant: A = "default" } = e, { loading_text: b = "Loading..." } = e, { absolute: y = !0 } = e, { translucent: E = !1 } = e, { border: F = !1 } = e, { autoscroll: T } = e, z, I = !1, B = 0, R = 0, L = null, W = null, oe = 0, q = null, ue, ie = null, we = !0;
-  const de = () => {
+  const me = () => {
     t(0, o = t(27, L = t(19, te = null))), t(25, B = performance.now()), t(26, R = 0), I = !0, ke();
   };
   function ke() {
@@ -15928,7 +15928,7 @@ function I5(n, e, t) {
       ie = H, t(16, ie), t(7, S), t(14, q), t(15, ue);
     });
   }
-  const me = () => {
+  const pe = () => {
     l("clear_status");
   };
   function Le(H) {
@@ -15949,7 +15949,7 @@ function I5(n, e, t) {
       if (H.progress != null)
         return H.progress;
     })) : t(14, q = null), q ? (t(15, ue = q[q.length - 1]), ie && (ue === 0 ? t(16, ie.style.transition = "0", ie) : t(16, ie.style.transition = "150ms", ie))) : t(15, ue = void 0)), n.$$.dirty[0] & /*status*/
-    16 && (m === "pending" ? de() : De()), n.$$.dirty[0] & /*el, scroll_to_output, status, autoscroll*/
+    16 && (m === "pending" ? me() : De()), n.$$.dirty[0] & /*el, scroll_to_output, status, autoscroll*/
     20979728 && z && f && (m === "pending" || m === "complete") && z5(z, T), n.$$.dirty[0] & /*status, message*/
     8388624, n.$$.dirty[0] & /*timer_diff*/
     67108864 && t(20, r = R.toFixed(1));
@@ -15986,7 +15986,7 @@ function I5(n, e, t) {
     i,
     a,
     ae,
-    me,
+    pe,
     Le
   ];
 }
@@ -16064,7 +16064,7 @@ function H5(n) {
     return ds(n, t);
   };
 }
-function pe(n, e) {
+function ge(n, e) {
   let t = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : Qa;
   Xu && Xu(n, null);
   let r = e.length;
@@ -16204,15 +16204,15 @@ function rh() {
     DATA_ATTR: ue,
     ARIA_ATTR: ie,
     IS_SCRIPT_OR_DATA: we,
-    ATTR_WHITESPACE: de,
+    ATTR_WHITESPACE: me,
     CUSTOM_ELEMENT: ke
   } = t1;
   let {
     IS_ALLOWED_URI: De
   } = t1, te = null;
-  const ae = pe({}, [...Qu, ...Bl, ...zl, ...Il, ...Ju]);
-  let me = null;
-  const Le = pe({}, [...$u, ...Nl, ...e1, ...Va]);
+  const ae = ge({}, [...Qu, ...Bl, ...zl, ...Il, ...Ju]);
+  let pe = null;
+  const Le = ge({}, [...$u, ...Nl, ...e1, ...Va]);
   let H = Object.seal($4(null, {
     tagNameCheck: {
       writable: !0,
@@ -16232,16 +16232,16 @@ function rh() {
       enumerable: !0,
       value: !1
     }
-  })), U = null, ve = null, _e = !0, Se = !0, Be = !1, Ie = !0, Ye = !1, ct = !0, Xe = !1, Ue = !1, Ge = !1, j = !1, N = !1, le = !1, qt = !0, fa = !1;
+  })), U = null, fe = null, ve = !0, Se = !0, Be = !1, Ie = !0, Ye = !1, ct = !0, Xe = !1, Ue = !1, Ge = !1, j = !1, N = !1, le = !1, qt = !0, fa = !1;
   const Er = "user-content-";
   let rr = !0, Sr = !1, nr = {}, _0 = null;
-  const v0 = pe({}, ["annotation-xml", "audio", "colgroup", "desc", "foreignobject", "head", "iframe", "math", "mi", "mn", "mo", "ms", "mtext", "noembed", "noframes", "noscript", "plaintext", "script", "style", "svg", "template", "thead", "title", "video", "xmp"]);
+  const v0 = ge({}, ["annotation-xml", "audio", "colgroup", "desc", "foreignobject", "head", "iframe", "math", "mi", "mn", "mo", "ms", "mtext", "noembed", "noframes", "noscript", "plaintext", "script", "style", "svg", "template", "thead", "title", "video", "xmp"]);
   let Wr = null;
-  const ao = pe({}, ["audio", "video", "img", "source", "image", "track"]);
+  const ao = ge({}, ["audio", "video", "img", "source", "image", "track"]);
   let Pi = null;
-  const io = pe({}, ["alt", "class", "for", "id", "label", "name", "pattern", "placeholder", "role", "summary", "title", "value", "style", "xmlns"]), da = "http://www.w3.org/1998/Math/MathML", ma = "http://www.w3.org/2000/svg", L0 = "http://www.w3.org/1999/xhtml";
+  const io = ge({}, ["alt", "class", "for", "id", "label", "name", "pattern", "placeholder", "role", "summary", "title", "value", "style", "xmlns"]), da = "http://www.w3.org/1998/Math/MathML", ma = "http://www.w3.org/2000/svg", L0 = "http://www.w3.org/1999/xhtml";
   let Yr = L0, Hi = !1, Vi = null;
-  const Dh = pe({}, [da, ma, L0], Ml);
+  const Dh = ge({}, [da, ma, L0], Ml);
   let vn = null;
   const Ah = ["application/xhtml+xml", "text/html"], Eh = "text/html";
   let it = null, Xr = null;
@@ -16251,21 +16251,21 @@ function rh() {
     let C = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
     if (!(Xr && Xr === C)) {
       if ((!C || typeof C != "object") && (C = {}), C = Tr(C), vn = // eslint-disable-next-line unicorn/prefer-includes
-      Ah.indexOf(C.PARSER_MEDIA_TYPE) === -1 ? Eh : C.PARSER_MEDIA_TYPE, it = vn === "application/xhtml+xml" ? Ml : Qa, te = h0(C, "ALLOWED_TAGS") ? pe({}, C.ALLOWED_TAGS, it) : ae, me = h0(C, "ALLOWED_ATTR") ? pe({}, C.ALLOWED_ATTR, it) : Le, Vi = h0(C, "ALLOWED_NAMESPACES") ? pe({}, C.ALLOWED_NAMESPACES, Ml) : Dh, Pi = h0(C, "ADD_URI_SAFE_ATTR") ? pe(
+      Ah.indexOf(C.PARSER_MEDIA_TYPE) === -1 ? Eh : C.PARSER_MEDIA_TYPE, it = vn === "application/xhtml+xml" ? Ml : Qa, te = h0(C, "ALLOWED_TAGS") ? ge({}, C.ALLOWED_TAGS, it) : ae, pe = h0(C, "ALLOWED_ATTR") ? ge({}, C.ALLOWED_ATTR, it) : Le, Vi = h0(C, "ALLOWED_NAMESPACES") ? ge({}, C.ALLOWED_NAMESPACES, Ml) : Dh, Pi = h0(C, "ADD_URI_SAFE_ATTR") ? ge(
         Tr(io),
         // eslint-disable-line indent
         C.ADD_URI_SAFE_ATTR,
         // eslint-disable-line indent
         it
         // eslint-disable-line indent
-      ) : io, Wr = h0(C, "ADD_DATA_URI_TAGS") ? pe(
+      ) : io, Wr = h0(C, "ADD_DATA_URI_TAGS") ? ge(
         Tr(ao),
         // eslint-disable-line indent
         C.ADD_DATA_URI_TAGS,
         // eslint-disable-line indent
         it
         // eslint-disable-line indent
-      ) : ao, _0 = h0(C, "FORBID_CONTENTS") ? pe({}, C.FORBID_CONTENTS, it) : v0, U = h0(C, "FORBID_TAGS") ? pe({}, C.FORBID_TAGS, it) : {}, ve = h0(C, "FORBID_ATTR") ? pe({}, C.FORBID_ATTR, it) : {}, nr = h0(C, "USE_PROFILES") ? C.USE_PROFILES : !1, _e = C.ALLOW_ARIA_ATTR !== !1, Se = C.ALLOW_DATA_ATTR !== !1, Be = C.ALLOW_UNKNOWN_PROTOCOLS || !1, Ie = C.ALLOW_SELF_CLOSE_IN_ATTR !== !1, Ye = C.SAFE_FOR_TEMPLATES || !1, ct = C.SAFE_FOR_XML !== !1, Xe = C.WHOLE_DOCUMENT || !1, j = C.RETURN_DOM || !1, N = C.RETURN_DOM_FRAGMENT || !1, le = C.RETURN_TRUSTED_TYPE || !1, Ge = C.FORCE_BODY || !1, qt = C.SANITIZE_DOM !== !1, fa = C.SANITIZE_NAMED_PROPS || !1, rr = C.KEEP_CONTENT !== !1, Sr = C.IN_PLACE || !1, De = C.ALLOWED_URI_REGEXP || eh, Yr = C.NAMESPACE || L0, H = C.CUSTOM_ELEMENT_HANDLING || {}, C.CUSTOM_ELEMENT_HANDLING && lo(C.CUSTOM_ELEMENT_HANDLING.tagNameCheck) && (H.tagNameCheck = C.CUSTOM_ELEMENT_HANDLING.tagNameCheck), C.CUSTOM_ELEMENT_HANDLING && lo(C.CUSTOM_ELEMENT_HANDLING.attributeNameCheck) && (H.attributeNameCheck = C.CUSTOM_ELEMENT_HANDLING.attributeNameCheck), C.CUSTOM_ELEMENT_HANDLING && typeof C.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements == "boolean" && (H.allowCustomizedBuiltInElements = C.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements), Ye && (Se = !1), N && (j = !0), nr && (te = pe({}, Ju), me = [], nr.html === !0 && (pe(te, Qu), pe(me, $u)), nr.svg === !0 && (pe(te, Bl), pe(me, Nl), pe(me, Va)), nr.svgFilters === !0 && (pe(te, zl), pe(me, Nl), pe(me, Va)), nr.mathMl === !0 && (pe(te, Il), pe(me, e1), pe(me, Va))), C.ADD_TAGS && (te === ae && (te = Tr(te)), pe(te, C.ADD_TAGS, it)), C.ADD_ATTR && (me === Le && (me = Tr(me)), pe(me, C.ADD_ATTR, it)), C.ADD_URI_SAFE_ATTR && pe(Pi, C.ADD_URI_SAFE_ATTR, it), C.FORBID_CONTENTS && (_0 === v0 && (_0 = Tr(_0)), pe(_0, C.FORBID_CONTENTS, it)), rr && (te["#text"] = !0), Xe && pe(te, ["html", "head", "body"]), te.table && (pe(te, ["tbody"]), delete U.tbody), C.TRUSTED_TYPES_POLICY) {
+      ) : ao, _0 = h0(C, "FORBID_CONTENTS") ? ge({}, C.FORBID_CONTENTS, it) : v0, U = h0(C, "FORBID_TAGS") ? ge({}, C.FORBID_TAGS, it) : {}, fe = h0(C, "FORBID_ATTR") ? ge({}, C.FORBID_ATTR, it) : {}, nr = h0(C, "USE_PROFILES") ? C.USE_PROFILES : !1, ve = C.ALLOW_ARIA_ATTR !== !1, Se = C.ALLOW_DATA_ATTR !== !1, Be = C.ALLOW_UNKNOWN_PROTOCOLS || !1, Ie = C.ALLOW_SELF_CLOSE_IN_ATTR !== !1, Ye = C.SAFE_FOR_TEMPLATES || !1, ct = C.SAFE_FOR_XML !== !1, Xe = C.WHOLE_DOCUMENT || !1, j = C.RETURN_DOM || !1, N = C.RETURN_DOM_FRAGMENT || !1, le = C.RETURN_TRUSTED_TYPE || !1, Ge = C.FORCE_BODY || !1, qt = C.SANITIZE_DOM !== !1, fa = C.SANITIZE_NAMED_PROPS || !1, rr = C.KEEP_CONTENT !== !1, Sr = C.IN_PLACE || !1, De = C.ALLOWED_URI_REGEXP || eh, Yr = C.NAMESPACE || L0, H = C.CUSTOM_ELEMENT_HANDLING || {}, C.CUSTOM_ELEMENT_HANDLING && lo(C.CUSTOM_ELEMENT_HANDLING.tagNameCheck) && (H.tagNameCheck = C.CUSTOM_ELEMENT_HANDLING.tagNameCheck), C.CUSTOM_ELEMENT_HANDLING && lo(C.CUSTOM_ELEMENT_HANDLING.attributeNameCheck) && (H.attributeNameCheck = C.CUSTOM_ELEMENT_HANDLING.attributeNameCheck), C.CUSTOM_ELEMENT_HANDLING && typeof C.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements == "boolean" && (H.allowCustomizedBuiltInElements = C.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements), Ye && (Se = !1), N && (j = !0), nr && (te = ge({}, Ju), pe = [], nr.html === !0 && (ge(te, Qu), ge(pe, $u)), nr.svg === !0 && (ge(te, Bl), ge(pe, Nl), ge(pe, Va)), nr.svgFilters === !0 && (ge(te, zl), ge(pe, Nl), ge(pe, Va)), nr.mathMl === !0 && (ge(te, Il), ge(pe, e1), ge(pe, Va))), C.ADD_TAGS && (te === ae && (te = Tr(te)), ge(te, C.ADD_TAGS, it)), C.ADD_ATTR && (pe === Le && (pe = Tr(pe)), ge(pe, C.ADD_ATTR, it)), C.ADD_URI_SAFE_ATTR && ge(Pi, C.ADD_URI_SAFE_ATTR, it), C.FORBID_CONTENTS && (_0 === v0 && (_0 = Tr(_0)), ge(_0, C.FORBID_CONTENTS, it)), rr && (te["#text"] = !0), Xe && ge(te, ["html", "head", "body"]), te.table && (ge(te, ["tbody"]), delete U.tbody), C.TRUSTED_TYPES_POLICY) {
         if (typeof C.TRUSTED_TYPES_POLICY.createHTML != "function")
           throw zn('TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.');
         if (typeof C.TRUSTED_TYPES_POLICY.createScriptURL != "function")
@@ -16275,7 +16275,7 @@ function rh() {
         E === void 0 && (E = e3(p, a)), E !== null && typeof F == "string" && (F = E.createHTML(""));
       xt && xt(C), Xr = C;
     }
-  }, so = pe({}, ["mi", "mo", "mn", "ms", "mtext"]), oo = pe({}, ["annotation-xml"]), xh = pe({}, ["title", "style", "font", "a", "script"]), uo = pe({}, [...Bl, ...zl, ...U5]), co = pe({}, [...Il, ...G5]), Fh = function(C) {
+  }, so = ge({}, ["mi", "mo", "mn", "ms", "mtext"]), oo = ge({}, ["annotation-xml"]), xh = ge({}, ["title", "style", "font", "a", "script"]), uo = ge({}, [...Bl, ...zl, ...U5]), co = ge({}, [...Il, ...G5]), Fh = function(C) {
     let V = y(C);
     (!V || !V.tagName) && (V = {
       namespaceURI: Yr,
@@ -16304,7 +16304,7 @@ function rh() {
         from: V
       });
     }
-    if (V.removeAttribute(C), C === "is" && !me[C])
+    if (V.removeAttribute(C), C === "is" && !pe[C])
       if (j || N)
         try {
           b0(V);
@@ -16388,9 +16388,9 @@ function rh() {
   }, _o = function(C, V, Z) {
     if (qt && (V === "id" || V === "name") && (Z in t || Z in Sh))
       return !1;
-    if (!(Se && !ve[V] && Et(ue, V))) {
-      if (!(_e && Et(ie, V))) {
-        if (!me[V] || ve[V]) {
+    if (!(Se && !fe[V] && Et(ue, V))) {
+      if (!(ve && Et(ie, V))) {
+        if (!pe[V] || fe[V]) {
           if (
             // First condition does a very basic check if a) it's basically a valid custom element tagname AND
             // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
@@ -16400,9 +16400,9 @@ function rh() {
             V === "is" && H.allowCustomizedBuiltInElements && (H.tagNameCheck instanceof RegExp && Et(H.tagNameCheck, Z) || H.tagNameCheck instanceof Function && H.tagNameCheck(Z)))
           ) return !1;
         } else if (!Pi[V]) {
-          if (!Et(De, Bn(Z, de, ""))) {
+          if (!Et(De, Bn(Z, me, ""))) {
             if (!((V === "src" || V === "xlink:href" || V === "href") && C !== "script" && q5(Z, "data:") === 0 && Wr[C])) {
-              if (!(Be && !Et(we, Bn(Z, de, "")))) {
+              if (!(Be && !Et(we, Bn(Z, me, "")))) {
                 if (Z)
                   return !1;
               }
@@ -16425,7 +16425,7 @@ function rh() {
       attrName: "",
       attrValue: "",
       keepAttr: !0,
-      allowedAttributes: me
+      allowedAttributes: pe
     };
     let Te = V.length;
     for (; Te--; ) {
@@ -16512,7 +16512,7 @@ function rh() {
           yt.appendChild(V.firstChild);
       else
         yt = V;
-      return (me.shadowroot || me.shadowrootmode) && (yt = R.call(r, yt, !0)), yt;
+      return (pe.shadowroot || pe.shadowrootmode) && (yt = R.call(r, yt, !0)), yt;
     }
     let Ct = Xe ? V.outerHTML : V.innerHTML;
     return Xe && te["!doctype"] && V.ownerDocument && V.ownerDocument.doctype && V.ownerDocument.doctype.name && Et(th, V.ownerDocument.doctype.name) && (Ct = "<!DOCTYPE " + V.ownerDocument.doctype.name + `>
@@ -18725,13 +18725,13 @@ function Qs(n, e) {
   };
 }
 function b7(n, e, t) {
-  var r = this && this.__awaiter || function(U, ve, _e, Se) {
+  var r = this && this.__awaiter || function(U, fe, ve, Se) {
     function Be(Ie) {
-      return Ie instanceof _e ? Ie : new _e(function(Ye) {
+      return Ie instanceof ve ? Ie : new ve(function(Ye) {
         Ye(Ie);
       });
     }
-    return new (_e || (_e = Promise))(function(Ie, Ye) {
+    return new (ve || (ve = Promise))(function(Ie, Ye) {
       function ct(Ge) {
         try {
           Ue(Se.next(Ge));
@@ -18749,7 +18749,7 @@ function b7(n, e, t) {
       function Ue(Ge) {
         Ge.done ? Ie(Ge.value) : Be(Ge.value).then(ct, Xe);
       }
-      Ue((Se = Se.apply(U, ve || [])).next());
+      Ue((Se = Se.apply(U, fe || [])).next());
     });
   };
   let a, i = [], l = null, s = null, { time_limit: o = null } = e, c = "closed", { on_change_cb: h } = e, { reject_cb: m } = e, { mode: f } = e;
@@ -18762,9 +18762,9 @@ function b7(n, e, t) {
   const R = o7();
   u7(() => document.createElement("canvas"));
   const L = (U) => r(void 0, void 0, void 0, function* () {
-    const _e = U.target.value;
-    yield C1(I, a, _e, E).then((Se) => r(void 0, void 0, void 0, function* () {
-      q = Se, t(10, l = i.find((Be) => Be.deviceId === _e) || null), t(14, ke = !1);
+    const ve = U.target.value;
+    yield C1(I, a, ve, E).then((Se) => r(void 0, void 0, void 0, function* () {
+      q = Se, t(10, l = i.find((Be) => Be.deviceId === ve) || null), t(14, ke = !1);
     }));
   });
   function W() {
@@ -18774,11 +18774,11 @@ function b7(n, e, t) {
           t(13, ue = !0), t(9, i = yield fh()), q = U;
         })).then(() => dh(i)).then((U) => {
           t(9, i = U);
-          const ve = q.getTracks().map((_e) => {
+          const fe = q.getTracks().map((ve) => {
             var Se;
-            return (Se = _e.getSettings()) === null || Se === void 0 ? void 0 : Se.deviceId;
+            return (Se = ve.getSettings()) === null || Se === void 0 ? void 0 : Se.deviceId;
           })[0];
-          t(10, l = ve && U.find((_e) => _e.deviceId === ve) || i[0]);
+          t(10, l = fe && U.find((ve) => ve.deviceId === fe) || i[0]);
         }), (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) && R("error", B("image.no_webcam_support"));
       } catch (U) {
         if (U instanceof DOMException && U.name == "NotAllowedError")
@@ -18791,10 +18791,16 @@ function b7(n, e, t) {
   let oe = (U) => {
     U.type === "end_stream" ? (h(U), t(12, c = "closed"), zt(ie), W()) : (console.debug("calling on_change_cb with msg", U), h(U));
   }, q, ue = !1, ie, { webrtc_id: we } = e;
-  function de() {
+  function me() {
     return r(this, void 0, void 0, function* () {
       if (c === "closed") {
-        ie = new RTCPeerConnection(F), ie.addEventListener("connectionstatechange", (ve) => r(this, void 0, void 0, function* () {
+        yield z.turn().then((fe) => {
+          if (fe.error) {
+            R("error", fe.error);
+            return;
+          }
+          t(20, F = fe), console.info("rtc_configuration", fe);
+        }), ie = new RTCPeerConnection(F), ie.addEventListener("connectionstatechange", (fe) => r(this, void 0, void 0, function* () {
           switch (ie.connectionState) {
             case "connected":
               t(12, c = "open"), t(11, s = o), R("tick");
@@ -18806,15 +18812,15 @@ function b7(n, e, t) {
               t(12, c = "closed"), t(11, s = null), R("error", "Connection failed!"), zt(ie);
               break;
           }
-        })), t(12, c = "waiting"), t(20, we = Math.random().toString(36).substring(2));
+        })), t(12, c = "waiting"), t(21, we = Math.random().toString(36).substring(2));
         const U = setTimeout(
           () => {
             h({ type: "connection_timeout" });
           },
           5e3
         );
-        Bi(q, ie, f === "send" ? null : a, z.offer, we, "video", oe, p, void 0, m).then((ve) => {
-          clearTimeout(U), ie = ve;
+        Bi(q, ie, f === "send" ? null : a, z.offer, we, "video", oe, p, void 0, m).then((fe) => {
+          clearTimeout(U), ie = fe;
         }).catch(() => {
           clearTimeout(U), console.info("catching"), t(12, c = "closed");
         });
@@ -18832,9 +18838,9 @@ function b7(n, e, t) {
       a = U, t(8, a);
     });
   }
-  const me = async () => W(), Le = () => t(14, ke = !0), H = () => t(14, ke = !1);
+  const pe = async () => W(), Le = () => t(14, ke = !0), H = () => t(14, ke = !1);
   return n.$$set = (U) => {
-    "time_limit" in U && t(21, o = U.time_limit), "on_change_cb" in U && t(22, h = U.on_change_cb), "reject_cb" in U && t(23, m = U.reject_cb), "mode" in U && t(24, f = U.mode), "rtp_params" in U && t(25, p = U.rtp_params), "icon" in U && t(0, v = U.icon), "icon_button_color" in U && t(1, w = U.icon_button_color), "icon_radius" in U && t(2, S = U.icon_radius), "pulse_color" in U && t(3, A = U.pulse_color), "button_labels" in U && t(4, b = U.button_labels), "track_constraints" in U && t(27, E = U.track_constraints), "rtc_configuration" in U && t(28, F = U.rtc_configuration), "stream_every" in U && t(29, T = U.stream_every), "server" in U && t(30, z = U.server), "include_audio" in U && t(5, I = U.include_audio), "i18n" in U && t(6, B = U.i18n), "webrtc_id" in U && t(20, we = U.webrtc_id);
+    "time_limit" in U && t(22, o = U.time_limit), "on_change_cb" in U && t(23, h = U.on_change_cb), "reject_cb" in U && t(24, m = U.reject_cb), "mode" in U && t(25, f = U.mode), "rtp_params" in U && t(26, p = U.rtp_params), "icon" in U && t(0, v = U.icon), "icon_button_color" in U && t(1, w = U.icon_button_color), "icon_radius" in U && t(2, S = U.icon_radius), "pulse_color" in U && t(3, A = U.pulse_color), "button_labels" in U && t(4, b = U.button_labels), "track_constraints" in U && t(28, E = U.track_constraints), "rtc_configuration" in U && t(20, F = U.rtc_configuration), "stream_every" in U && t(29, T = U.stream_every), "server" in U && t(30, z = U.server), "include_audio" in U && t(5, I = U.include_audio), "i18n" in U && t(6, B = U.i18n), "webrtc_id" in U && t(21, we = U.webrtc_id);
   }, [
     v,
     w,
@@ -18853,9 +18859,10 @@ function b7(n, e, t) {
     ke,
     L,
     W,
-    de,
+    me,
     De,
     te,
+    F,
     we,
     o,
     h,
@@ -18864,11 +18871,10 @@ function b7(n, e, t) {
     p,
     y,
     E,
-    F,
     T,
     z,
     ae,
-    me,
+    pe,
     Le,
     H
   ];
@@ -18882,24 +18888,24 @@ class y7 extends Q6 {
       v7,
       i7,
       {
-        time_limit: 21,
-        on_change_cb: 22,
-        reject_cb: 23,
-        mode: 24,
-        rtp_params: 25,
+        time_limit: 22,
+        on_change_cb: 23,
+        reject_cb: 24,
+        mode: 25,
+        rtp_params: 26,
         icon: 0,
         icon_button_color: 1,
         icon_radius: 2,
         pulse_color: 3,
         button_labels: 4,
-        modify_stream: 26,
-        track_constraints: 27,
-        rtc_configuration: 28,
+        modify_stream: 27,
+        track_constraints: 28,
+        rtc_configuration: 20,
         stream_every: 29,
         server: 30,
         include_audio: 5,
         i18n: 6,
-        webrtc_id: 20,
+        webrtc_id: 21,
         click_outside: 7
       },
       null,
@@ -18907,7 +18913,7 @@ class y7 extends Q6 {
     );
   }
   get modify_stream() {
-    return this.$$.ctx[26];
+    return this.$$.ctx[27];
   }
   get click_outside() {
     return Qs;
@@ -20343,7 +20349,7 @@ function M8(n, e, t) {
       });
     }
     return new (oe || (oe = Promise))(function(ie, we) {
-      function de(te) {
+      function me(te) {
         try {
           De(q.next(te));
         } catch (ae) {
@@ -20358,7 +20364,7 @@ function M8(n, e, t) {
         }
       }
       function De(te) {
-        te.done ? ie(te.value) : ue(te.value).then(de, ke);
+        te.done ? ie(te.value) : ue(te.value).then(me, ke);
       }
       De((q = q.apply(L, W || [])).next());
     });
@@ -20513,7 +20519,7 @@ const {
   action_destroyer: P8,
   add_render_callback: H8,
   append_hydration: We,
-  attr: fe,
+  attr: de,
   binding_callbacks: V8,
   bubble: U8,
   check_outros: V0,
@@ -20545,7 +20551,7 @@ const {
   stop_propagation: Z8,
   text: ha,
   toggle_class: vi,
-  transition_in: ge,
+  transition_in: _e,
   transition_out: Ae
 } = window.__gradio__svelte__internal, { createEventDispatcher: K8 } = window.__gradio__svelte__internal, { onMount: Q8 } = window.__gradio__svelte__internal;
 function xc(n, e, t) {
@@ -20630,7 +20636,7 @@ function J8(n) {
       o.l(R), R.forEach(he), c = Ut(B), E && E.l(B), h = Ut(B), F && F.l(B), m = Ut(B), T && T.l(B), p = Ut(B), z && z.l(B), B.forEach(he), this.h();
     },
     h() {
-      fe(l, "aria-label", "start stream"), fe(l, "class", "svelte-k2wuss"), fe(i, "class", "button-wrap svelte-k2wuss"), vi(
+      de(l, "aria-label", "start stream"), de(l, "class", "svelte-k2wuss"), de(i, "class", "button-wrap svelte-k2wuss"), vi(
         i,
         "pulse",
         /*stopword_recognized*/
@@ -20667,25 +20673,25 @@ function J8(n) {
       let W = s;
       s = y(I), s === W ? b[s].p(I, B) : (U0(), Ae(b[W], 1, 1, () => {
         b[W] = null;
-      }), V0(), o = b[s], o ? o.p(I, B) : (o = b[s] = A[s](I), o.c()), ge(o, 1), o.m(l, null)), /*stream_state*/
+      }), V0(), o = b[s], o ? o.p(I, B) : (o = b[s] = A[s](I), o.c()), _e(o, 1), o.m(l, null)), /*stream_state*/
       I[14] === "closed" ? E ? (E.p(I, B), B[0] & /*stream_state*/
-      16384 && ge(E, 1)) : (E = Fc(I), E.c(), ge(E, 1), E.m(i, h)) : E && (U0(), Ae(E, 1, 1, () => {
+      16384 && _e(E, 1)) : (E = Fc(I), E.c(), _e(E, 1), E.m(i, h)) : E && (U0(), Ae(E, 1, 1, () => {
         E = null;
       }), V0()), /*stream_state*/
       I[14] === "open" && /*mode*/
       I[1] === "send-receive" ? F ? (F.p(I, B), B[0] & /*stream_state, mode*/
-      16386 && ge(F, 1)) : (F = Cc(I), F.c(), ge(F, 1), F.m(i, m)) : F && (U0(), Ae(F, 1, 1, () => {
+      16386 && _e(F, 1)) : (F = Cc(I), F.c(), _e(F, 1), F.m(i, m)) : F && (U0(), Ae(F, 1, 1, () => {
         F = null;
       }), V0()), B[0] & /*stream_state, mode*/
       16386 && (f = /*stream_state*/
       I[14] === "open" && /*mode*/
       I[1].includes("send")), f ? T ? (T.p(I, B), B[0] & /*stream_state, mode*/
-      16386 && ge(T, 1)) : (T = Tc(I), T.c(), ge(T, 1), T.m(i, p)) : T && (U0(), Ae(T, 1, 1, () => {
+      16386 && _e(T, 1)) : (T = Tc(I), T.c(), _e(T, 1), T.m(i, p)) : T && (U0(), Ae(T, 1, 1, () => {
         T = null;
       }), V0()), /*options_open*/
       I[12] && /*selected_device*/
       I[18] ? z ? (z.p(I, B), B[0] & /*options_open, selected_device*/
-      266240 && ge(z, 1)) : (z = Mc(I), z.c(), ge(z, 1), z.m(i, null)) : z && (U0(), Ae(z, 1, 1, () => {
+      266240 && _e(z, 1)) : (z = Mc(I), z.c(), _e(z, 1), z.m(i, null)) : z && (U0(), Ae(z, 1, 1, () => {
         z = null;
       }), V0()), (!v || B[0] & /*stopword_recognized*/
       1024) && vi(
@@ -20696,7 +20702,7 @@ function J8(n) {
       );
     },
     i(I) {
-      v || (ge(e.$$.fragment, I), ge(r.$$.fragment, I), ge(o), ge(E), ge(F), ge(T), ge(z), v = !0);
+      v || (_e(e.$$.fragment, I), _e(r.$$.fragment, I), _e(o), _e(E), _e(F), _e(T), _e(z), v = !0);
     },
     o(I) {
       Ae(e.$$.fragment, I), Ae(r.$$.fragment, I), Ae(o), Ae(E), Ae(F), Ae(T), Ae(z), v = !1;
@@ -20722,14 +20728,14 @@ function $8(n) {
       Nt(t.$$.fragment, l), l.forEach(he), this.h();
     },
     h() {
-      fe(e, "title", "grant webcam access"), X8(e, "height", "100%");
+      de(e, "title", "grant webcam access"), X8(e, "height", "100%");
     },
     m(i, l) {
       ut(i, e, l), Ot(t, e, null), a = !0;
     },
     p: no,
     i(i) {
-      a || (ge(t.$$.fragment, i), i && (r || H8(() => {
+      a || (_e(t.$$.fragment, i), i && (r || H8(() => {
         r = G8(e, H4, { delay: 100, duration: 200 }), r.start();
       })), a = !0);
     },
@@ -20759,7 +20765,7 @@ function ep(n) {
       Nt(r.$$.fragment, h), h.forEach(he), a = Ut(c), l = ua(c, i), c.forEach(he), this.h();
     },
     h() {
-      fe(t, "class", "icon color-primary svelte-k2wuss"), fe(t, "title", "start recording"), fe(e, "class", "icon-with-text svelte-k2wuss");
+      de(t, "class", "icon color-primary svelte-k2wuss"), de(t, "title", "start recording"), de(e, "class", "icon-with-text svelte-k2wuss");
     },
     m(o, c) {
       ut(o, e, c), We(e, t), Ot(r, t, null), We(e, a), We(e, l), s = !0;
@@ -20771,7 +20777,7 @@ function ep(n) {
       o[4]("audio.record")) + "") && ca(l, i);
     },
     i(o) {
-      s || (ge(r.$$.fragment, o), s = !0);
+      s || (_e(r.$$.fragment, o), s = !0);
     },
     o(o) {
       Ae(r.$$.fragment, o), s = !1;
@@ -20804,7 +20810,7 @@ function tp(n) {
       r.l(f), a = Ut(f), l = ua(f, i), f.forEach(he), this.h();
     },
     h() {
-      fe(e, "class", "icon-with-text svelte-k2wuss");
+      de(e, "class", "icon-with-text svelte-k2wuss");
     },
     m(m, f) {
       ut(m, e, f), c[t].m(e, null), We(e, a), We(e, l), s = !0;
@@ -20813,13 +20819,13 @@ function tp(n) {
       let p = t;
       t = h(m), t === p ? c[t].p(m, f) : (U0(), Ae(c[p], 1, 1, () => {
         c[p] = null;
-      }), V0(), r = c[t], r ? r.p(m, f) : (r = c[t] = o[t](m), r.c()), ge(r, 1), r.m(e, a)), (!s || f[0] & /*button_labels, i18n*/
+      }), V0(), r = c[t], r ? r.p(m, f) : (r = c[t] = o[t](m), r.c()), _e(r, 1), r.m(e, a)), (!s || f[0] & /*button_labels, i18n*/
       528) && i !== (i = /*button_labels*/
       (m[9].stop || /*i18n*/
       m[4]("audio.stop")) + "") && ca(l, i);
     },
     i(m) {
-      s || (ge(r), s = !0);
+      s || (_e(r), s = !0);
     },
     o(m) {
       Ae(r), s = !1;
@@ -20846,7 +20852,7 @@ function rp(n) {
       Nt(r.$$.fragment, h), h.forEach(he), a = Ut(c), l = ua(c, i), c.forEach(he), this.h();
     },
     h() {
-      fe(t, "class", "icon color-primary svelte-k2wuss"), fe(t, "title", "spinner"), fe(e, "class", "icon-with-text svelte-k2wuss");
+      de(t, "class", "icon color-primary svelte-k2wuss"), de(t, "title", "spinner"), de(e, "class", "icon-with-text svelte-k2wuss");
     },
     m(o, c) {
       ut(o, e, c), We(e, t), Ot(r, t, null), We(e, a), We(e, l), s = !0;
@@ -20857,7 +20863,7 @@ function rp(n) {
       (o[9].waiting || "Connecting...") + "") && ca(l, i);
     },
     i(o) {
-      s || (ge(r.$$.fragment, o), s = !0);
+      s || (_e(r.$$.fragment, o), s = !0);
     },
     o(o) {
       Ae(r.$$.fragment, o), s = !1;
@@ -20879,14 +20885,14 @@ function np(n) {
       Nt(t.$$.fragment, i), i.forEach(he), this.h();
     },
     h() {
-      fe(e, "class", "icon color-primary svelte-k2wuss"), fe(e, "title", "start recording");
+      de(e, "class", "icon color-primary svelte-k2wuss"), de(e, "title", "start recording");
     },
     m(a, i) {
       ut(a, e, i), Ot(t, e, null), r = !0;
     },
     p: no,
     i(a) {
-      r || (ge(t.$$.fragment, a), r = !0);
+      r || (_e(t.$$.fragment, a), r = !0);
     },
     o(a) {
       Ae(t.$$.fragment, a), r = !1;
@@ -20925,7 +20931,7 @@ function ap(n) {
       Nt(t.$$.fragment, l), l.forEach(he), this.h();
     },
     h() {
-      fe(e, "class", "icon svelte-k2wuss"), fe(e, "title", "stop recording"), fe(e, "style", r = `fill: ${/*icon_button_color*/
+      de(e, "class", "icon svelte-k2wuss"), de(e, "title", "stop recording"), de(e, "style", r = `fill: ${/*icon_button_color*/
       n[6]}; stroke: ${/*icon_button_color*/
       n[6]}; color: ${/*icon_button_color*/
       n[6]};`);
@@ -20945,10 +20951,10 @@ function ap(n) {
       64 && r !== (r = `fill: ${/*icon_button_color*/
       i[6]}; stroke: ${/*icon_button_color*/
       i[6]}; color: ${/*icon_button_color*/
-      i[6]};`)) && fe(e, "style", r);
+      i[6]};`)) && de(e, "style", r);
     },
     i(i) {
-      a || (ge(t.$$.fragment, i), a = !0);
+      a || (_e(t.$$.fragment, i), a = !0);
     },
     o(i) {
       Ae(t.$$.fragment, i), a = !1;
@@ -20970,7 +20976,7 @@ function Fc(n) {
       Nt(t.$$.fragment, s), s.forEach(he), this.h();
     },
     h() {
-      fe(e, "class", "icon svelte-k2wuss"), fe(e, "aria-label", "select input source");
+      de(e, "class", "icon svelte-k2wuss"), de(e, "aria-label", "select input source");
     },
     m(l, s) {
       ut(l, e, s), Ot(t, e, null), r = !0, a || (i = Q0(
@@ -20982,7 +20988,7 @@ function Fc(n) {
     },
     p: no,
     i(l) {
-      r || (ge(t.$$.fragment, l), r = !0);
+      r || (_e(t.$$.fragment, l), r = !0);
     },
     o(l) {
       Ae(t.$$.fragment, l), r = !1;
@@ -21013,10 +21019,10 @@ function Cc(n) {
       a.l(w), w.forEach(he), v.forEach(he), this.h();
     },
     h() {
-      fe(t, "class", "icon svelte-k2wuss"), fe(t, "style", i = `fill: ${/*icon_button_color*/
+      de(t, "class", "icon svelte-k2wuss"), de(t, "style", i = `fill: ${/*icon_button_color*/
       n[6]}; stroke: ${/*icon_button_color*/
       n[6]}; color: ${/*icon_button_color*/
-      n[6]};`), fe(e, "class", "mute-button svelte-k2wuss"), fe(e, "aria-label", l = /*is_muted*/
+      n[6]};`), de(e, "class", "mute-button svelte-k2wuss"), de(e, "aria-label", l = /*is_muted*/
       n[20] ? "unmute audio" : "mute audio");
     },
     m(p, v) {
@@ -21031,16 +21037,16 @@ function Cc(n) {
       let w = r;
       r = f(p), r !== w && (U0(), Ae(m[w], 1, 1, () => {
         m[w] = null;
-      }), V0(), a = m[r], a || (a = m[r] = h[r](p), a.c()), ge(a, 1), a.m(t, null)), (!s || v[0] & /*icon_button_color*/
+      }), V0(), a = m[r], a || (a = m[r] = h[r](p), a.c()), _e(a, 1), a.m(t, null)), (!s || v[0] & /*icon_button_color*/
       64 && i !== (i = `fill: ${/*icon_button_color*/
       p[6]}; stroke: ${/*icon_button_color*/
       p[6]}; color: ${/*icon_button_color*/
-      p[6]};`)) && fe(t, "style", i), (!s || v[0] & /*is_muted*/
+      p[6]};`)) && de(t, "style", i), (!s || v[0] & /*is_muted*/
       1048576 && l !== (l = /*is_muted*/
-      p[20] ? "unmute audio" : "mute audio")) && fe(e, "aria-label", l);
+      p[20] ? "unmute audio" : "mute audio")) && de(e, "aria-label", l);
     },
     i(p) {
-      s || (ge(a), s = !0);
+      s || (_e(a), s = !0);
     },
     o(p) {
       Ae(a), s = !1;
@@ -21063,7 +21069,7 @@ function ip(n) {
       Ot(e, r, a), t = !0;
     },
     i(r) {
-      t || (ge(e.$$.fragment, r), t = !0);
+      t || (_e(e.$$.fragment, r), t = !0);
     },
     o(r) {
       Ae(e.$$.fragment, r), t = !1;
@@ -21086,7 +21092,7 @@ function lp(n) {
       Ot(e, r, a), t = !0;
     },
     i(r) {
-      t || (ge(e.$$.fragment, r), t = !0);
+      t || (_e(e.$$.fragment, r), t = !0);
     },
     o(r) {
       Ae(e.$$.fragment, r), t = !1;
@@ -21117,10 +21123,10 @@ function Tc(n) {
       a.l(w), w.forEach(he), v.forEach(he), this.h();
     },
     h() {
-      fe(t, "class", "icon svelte-k2wuss"), fe(t, "style", i = `fill: ${/*icon_button_color*/
+      de(t, "class", "icon svelte-k2wuss"), de(t, "style", i = `fill: ${/*icon_button_color*/
       n[6]}; stroke: ${/*icon_button_color*/
       n[6]}; color: ${/*icon_button_color*/
-      n[6]};`), fe(e, "class", "mute-button svelte-k2wuss"), fe(e, "aria-label", l = /*is_mic_muted*/
+      n[6]};`), de(e, "class", "mute-button svelte-k2wuss"), de(e, "aria-label", l = /*is_mic_muted*/
       n[21] ? "unmute mic" : "mute mic");
     },
     m(p, v) {
@@ -21135,16 +21141,16 @@ function Tc(n) {
       let w = r;
       r = f(p), r !== w && (U0(), Ae(m[w], 1, 1, () => {
         m[w] = null;
-      }), V0(), a = m[r], a || (a = m[r] = h[r](p), a.c()), ge(a, 1), a.m(t, null)), (!s || v[0] & /*icon_button_color*/
+      }), V0(), a = m[r], a || (a = m[r] = h[r](p), a.c()), _e(a, 1), a.m(t, null)), (!s || v[0] & /*icon_button_color*/
       64 && i !== (i = `fill: ${/*icon_button_color*/
       p[6]}; stroke: ${/*icon_button_color*/
       p[6]}; color: ${/*icon_button_color*/
-      p[6]};`)) && fe(t, "style", i), (!s || v[0] & /*is_mic_muted*/
+      p[6]};`)) && de(t, "style", i), (!s || v[0] & /*is_mic_muted*/
       2097152 && l !== (l = /*is_mic_muted*/
-      p[21] ? "unmute mic" : "mute mic")) && fe(e, "aria-label", l);
+      p[21] ? "unmute mic" : "mute mic")) && de(e, "aria-label", l);
     },
     i(p) {
-      s || (ge(a), s = !0);
+      s || (_e(a), s = !0);
     },
     o(p) {
       Ae(a), s = !1;
@@ -21167,7 +21173,7 @@ function sp(n) {
       Ot(e, r, a), t = !0;
     },
     i(r) {
-      t || (ge(e.$$.fragment, r), t = !0);
+      t || (_e(e.$$.fragment, r), t = !0);
     },
     o(r) {
       Ae(e.$$.fragment, r), t = !1;
@@ -21190,7 +21196,7 @@ function op(n) {
       Ot(e, r, a), t = !0;
     },
     i(r) {
-      t || (ge(e.$$.fragment, r), t = !0);
+      t || (_e(e.$$.fragment, r), t = !0);
     },
     o(r) {
       Ae(e.$$.fragment, r), t = !1;
@@ -21222,7 +21228,7 @@ function Mc(n) {
       Nt(r.$$.fragment, p), a = Ut(p), p.forEach(he), h.l(f), f.forEach(he), this.h();
     },
     h() {
-      fe(t, "class", "inset-icon svelte-k2wuss"), fe(e, "class", "select-wrap svelte-k2wuss"), fe(e, "aria-label", "select source");
+      de(t, "class", "inset-icon svelte-k2wuss"), de(e, "class", "select-wrap svelte-k2wuss"), de(e, "aria-label", "select source");
     },
     m(m, f) {
       ut(m, e, f), We(e, t), Ot(r, t, null), We(t, a), h.m(e, null), i = !0, l || (s = [
@@ -21248,7 +21254,7 @@ function Mc(n) {
       c === (c = o(m)) && h ? h.p(m, f) : (h.d(1), h = c(m), h && (h.c(), h.m(e, null)));
     },
     i(m) {
-      i || (ge(r.$$.fragment, m), i = !0);
+      i || (_e(r.$$.fragment, m), i = !0);
     },
     o(m) {
       Ae(r.$$.fragment, m), i = !1;
@@ -21318,7 +21324,7 @@ function cp(n) {
       r = ua(i, t), i.forEach(he), this.h();
     },
     h() {
-      e.__value = "", ks(e, e.__value), fe(e, "class", "svelte-k2wuss");
+      e.__value = "", ks(e, e.__value), de(e, "class", "svelte-k2wuss");
     },
     m(a, i) {
       ut(a, e, i), We(e, r);
@@ -21351,7 +21357,7 @@ function Bc(n) {
       e.__value = i = /*device*/
       n[50].deviceId, ks(e, e.__value), e.selected = l = /*selected_device*/
       n[18].deviceId === /*device*/
-      n[50].deviceId, fe(e, "class", "svelte-k2wuss");
+      n[50].deviceId, de(e, "class", "svelte-k2wuss");
     },
     m(s, o) {
       ut(s, e, o), We(e, r), We(e, a);
@@ -21405,12 +21411,12 @@ function hp(n) {
       a = Je(w, "AUDIO", { class: !0 }), Qe(a).forEach(he), i = Ut(w), s.l(w), w.forEach(he), this.h();
     },
     h() {
-      fe(a, "class", "standard-player svelte-k2wuss"), vi(
+      de(a, "class", "standard-player svelte-k2wuss"), vi(
         a,
         "hidden",
         /*value*/
         n[0] === "__webrtc_value__"
-      ), fe(r, "class", "audio-container svelte-k2wuss");
+      ), de(r, "class", "audio-container svelte-k2wuss");
     },
     m(v, w) {
       Ot(e, v, w), ut(v, t, w), ut(v, r, w), We(r, a), n[39](a), We(r, i), f[l].m(r, null), o = !0, c || (h = [
@@ -21451,10 +21457,10 @@ function hp(n) {
       let A = l;
       l = p(v), l === A ? f[l].p(v, w) : (U0(), Ae(f[A], 1, 1, () => {
         f[A] = null;
-      }), V0(), s = f[l], s ? s.p(v, w) : (s = f[l] = m[l](v), s.c()), ge(s, 1), s.m(r, null));
+      }), V0(), s = f[l], s ? s.p(v, w) : (s = f[l] = m[l](v), s.c()), _e(s, 1), s.m(r, null));
     },
     i(v) {
-      o || (ge(e.$$.fragment, v), ge(s), o = !0);
+      o || (_e(e.$$.fragment, v), _e(s), o = !0);
     },
     o(v) {
       Ae(e.$$.fragment, v), Ae(s), o = !1;
@@ -21513,9 +21519,9 @@ function dp(n, e, t) {
       },
       3e3
     )) : j.type === "end_stream" ? (t(14, L = "closed"), zt(oe), p(j)) : (console.debug("calling on_change_cb with msg", j), p(j));
-  }, I = !1, B = null, { server: R } = e, L = "closed", W, oe, q = null, ue, ie, we = null, de = !1, ke = !1, De = !1;
+  }, I = !1, B = null, { server: R } = e, L = "closed", W, oe, q = null, ue, ie, we = null, me = !1, ke = !1, De = !1;
   const te = () => a === "send" ? ue : W.srcObject, ae = K8();
-  function me() {
+  function pe() {
     return r(this, void 0, void 0, function* () {
       try {
         const N = we ? Object.assign(
@@ -21536,7 +21542,7 @@ function dp(n, e, t) {
         }
         throw N;
       }
-      t(17, ie = dh(yield fh(), "audioinput")), t(19, de = !0);
+      t(17, ie = dh(yield fh(), "audioinput")), t(19, me = !0);
       const j = ue.getTracks().map((N) => {
         var le;
         return (le = N.getSettings()) === null || le === void 0 ? void 0 : le.deviceId;
@@ -21547,7 +21553,7 @@ function dp(n, e, t) {
   function Le() {
     return r(this, void 0, void 0, function* () {
       if (L === "open") {
-        zt(oe), t(14, L = "closed"), t(13, B = null), yield me();
+        zt(oe), t(14, L = "closed"), t(13, B = null), yield pe();
         return;
       }
       q = Math.random().toString(36).substring(2), t(0, i = q), t(14, L = "waiting"), yield R.turn().then((le) => {
@@ -21570,7 +21576,7 @@ function dp(n, e, t) {
         }
       })), t(16, ue = null);
       try {
-        yield me();
+        yield pe();
       } catch (le) {
         if (!navigator.mediaDevices) {
           ae("error", c("audio.no_device_support"));
@@ -21610,10 +21616,10 @@ function dp(n, e, t) {
       audio: Object.assign({ deviceId: { exact: le } }, m)
     })), t(18, we = ie.find((qt) => qt.deviceId === le) || null), t(12, I = !1);
   });
-  function ve() {
+  function fe() {
     W && (t(15, W.muted = !W.muted, W), t(20, ke = W.muted));
   }
-  function _e() {
+  function ve() {
     if (ue && ue.getAudioTracks().length > 0) {
       const j = ue.getAudioTracks()[0];
       j.enabled = !j.enabled, t(21, De = !j.enabled);
@@ -21627,7 +21633,7 @@ function dp(n, e, t) {
       W = j, t(15, W);
     });
   }
-  const Ie = () => ae("stop"), Ye = () => ae("play"), ct = async () => me(), Xe = () => ue, Ue = () => t(12, I = !0), Ge = () => t(12, I = !1);
+  const Ie = () => ae("stop"), Ye = () => ae("play"), ct = async () => pe(), Xe = () => ue, Ue = () => t(12, I = !0), Ge = () => t(12, I = !1);
   return n.$$set = (j) => {
     "mode" in j && t(1, a = j.mode), "value" in j && t(0, i = j.value), "label" in j && t(2, l = j.label), "show_label" in j && t(3, s = j.show_label), "rtc_configuration" in j && t(30, o = j.rtc_configuration), "i18n" in j && t(4, c = j.i18n), "time_limit" in j && t(31, h = j.time_limit), "track_constraints" in j && t(32, m = j.track_constraints), "rtp_params" in j && t(33, f = j.rtp_params), "on_change_cb" in j && t(34, p = j.on_change_cb), "reject_cb" in j && t(35, v = j.reject_cb), "icon" in j && t(5, w = j.icon), "icon_button_color" in j && t(6, S = j.icon_button_color), "pulse_color" in j && t(7, A = j.pulse_color), "icon_radius" in j && t(8, b = j.icon_radius), "button_labels" in j && t(9, y = j.button_labels), "server" in j && t(36, R = j.server);
   }, n.$$.update = () => {
@@ -21654,17 +21660,17 @@ function dp(n, e, t) {
     ue,
     ie,
     we,
-    de,
+    me,
     ke,
     De,
     te,
     ae,
-    me,
+    pe,
     Le,
     H,
     U,
+    fe,
     ve,
-    _e,
     o,
     h,
     m,
@@ -22479,15 +22485,15 @@ function Bp(n, e, t) {
   function ie(N) {
     l = N, t(0, l);
   }
-  const we = () => b.dispatch("tick"), de = ({ detail: N }) => b.dispatch("error", N);
+  const we = () => b.dispatch("tick"), me = ({ detail: N }) => b.dispatch("error", N);
   function ke(N) {
     l = N, t(0, l);
   }
   const De = () => b.dispatch("tick"), te = ({ detail: N }) => b.dispatch("error", N), ae = (...N) => b.client.stream(...N);
-  function me(N) {
+  function pe(N) {
     l = N, t(0, l);
   }
-  const Le = () => b.dispatch("clear"), H = () => b.dispatch("play"), U = () => b.dispatch("pause"), ve = () => b.dispatch("upload"), _e = () => b.dispatch("stop"), Se = () => b.dispatch("end"), Be = () => b.dispatch("start_recording"), Ie = () => b.dispatch("stop_recording"), Ye = () => b.dispatch("tick"), ct = ({ detail: N }) => b.dispatch("error", N);
+  const Le = () => b.dispatch("clear"), H = () => b.dispatch("play"), U = () => b.dispatch("pause"), fe = () => b.dispatch("upload"), ve = () => b.dispatch("stop"), Se = () => b.dispatch("end"), Be = () => b.dispatch("start_recording"), Ie = () => b.dispatch("stop_recording"), Ye = () => b.dispatch("tick"), ct = ({ detail: N }) => b.dispatch("error", N);
   function Xe(N) {
     l = N, t(0, l);
   }
@@ -22526,17 +22532,17 @@ function Bp(n, e, t) {
     ue,
     ie,
     we,
-    de,
+    me,
     ke,
     De,
     te,
     ae,
-    me,
+    pe,
     Le,
     H,
     U,
+    fe,
     ve,
-    _e,
     Se,
     Be,
     Ie,

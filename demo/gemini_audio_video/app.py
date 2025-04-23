@@ -12,8 +12,7 @@ from fastrtc import (
     AsyncAudioVideoStreamHandler,
     Stream,
     WebRTC,
-    get_turn_credentials_async,
-    wait_for_item,
+    get_cloudflare_turn_credentials_async,
 )
 from google import genai
 from gradio.utils import get_space
@@ -66,7 +65,6 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
             model="gemini-2.0-flash-exp", config=config
         ) as session:
             self.session = session
-            print("set session")
             while not self.quit.is_set():
                 turn = self.session.receive()
                 try:
@@ -91,7 +89,7 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
         self.video_queue.put_nowait(frame)
 
     async def video_emit(self):
-        frame = await wait_for_item(self.video_queue)
+        frame = await self.video_queue.get()
         if frame is not None:
             return frame
         else:
@@ -105,9 +103,8 @@ class GeminiHandler(AsyncAudioVideoStreamHandler):
             await self.session.send(input=audio_message)
 
     async def emit(self):
-        array = await wait_for_item(self.audio_queue)
-        if array is not None:
-            return (self.output_sample_rate, array)
+        array = await self.audio_queue.get()
+        return (self.output_sample_rate, array)
 
     async def shutdown(self) -> None:
         if self.session:
@@ -120,7 +117,7 @@ stream = Stream(
     handler=GeminiHandler(),
     modality="audio-video",
     mode="send-receive",
-    rtc_configuration=get_turn_credentials_async if get_space() == "spaces" else None,
+    rtc_configuration=get_cloudflare_turn_credentials_async,
     time_limit=90 if get_space() else None,
     additional_inputs=[
         gr.Image(label="Image", type="numpy", sources=["upload", "clipboard"])
@@ -160,9 +157,7 @@ with gr.Blocks(css=css) as demo:
                 modality="audio-video",
                 mode="send-receive",
                 elem_id="video-source",
-                rtc_configuration=get_turn_credentials_async
-                if get_space() == "spaces"
-                else None,
+                rtc_configuration=get_cloudflare_turn_credentials_async,
                 icon="https://www.gstatic.com/lamda/images/gemini_favicon_f069958c85030456e93de685481c559f160ea06b.png",
                 pulse_color="rgb(255, 255, 255)",
                 icon_button_color="rgb(255, 255, 255)",
