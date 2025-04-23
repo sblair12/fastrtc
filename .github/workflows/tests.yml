@@ -13,7 +13,7 @@ jobs:
       - name: Run linters
         run: |
           pip install ruff pyright
-          pip install -e .[dev]
+          pip install -e .[dev, tts]
           ruff check .
           ruff format --check --diff .
           pyright
