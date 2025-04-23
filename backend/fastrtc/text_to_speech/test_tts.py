@@ -1,5 +1,6 @@
-from fastrtc.text_to_speech.tts import get_tts_model
 import pytest
+
+from fastrtc.text_to_speech.tts import get_tts_model
 
 
 @pytest.mark.parametrize("model", ["kokoro", "cartesia"])
