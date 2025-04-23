@@ -11,25 +11,27 @@ from fastrtc import (
     AdditionalOutputs,
     ReplyOnPause,
     Stream,
-    audio_to_bytes,
     get_cloudflare_turn_credentials_async,
     get_current_context,
+    get_stt_model,
     get_tts_model,
 )
-from groq import Groq
+from groq import AsyncGroq
 from numpy.typing import NDArray
 
 curr_dir = Path(__file__).parent
 load_dotenv()
 
-tts_model = get_tts_model()
-groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
+tts_model = get_tts_model(
+    model="cartesia", cartesia_api_key=os.getenv("CARTESIA_API_KEY")
+)
+groq = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
+stt_model = get_stt_model()
 
 conversations: dict[str, list[dict[str, str]]] = {}
 
 
-def response(user_audio: tuple[int, NDArray[np.int16]]):
+async def response(user_audio: tuple[int, NDArray[np.int16]]):
     context = get_current_context()
     if context.webrtc_id not in conversations:
         conversations[context.webrtc_id] = [
@@ -43,16 +45,11 @@ def response(user_audio: tuple[int, NDArray[np.int16]]):
         ]
     messages = conversations[context.webrtc_id]
 
-    transcription = groq.audio.transcriptions.create(
-        file=("audio.wav", audio_to_bytes(user_audio)),
-        model="distil-whisper-large-v3-en",
-        response_format="verbose_json",
-    )
-    print(transcription.text)
+    transcription = stt_model.stt(user_audio)
 
-    messages.append({"role": "user", "content": transcription.text})
+    messages.append({"role": "user", "content": transcription})
 
-    completion = groq.chat.completions.create(  # type: ignore
+    completion = await groq.chat.completions.create(  # type: ignore
         model="meta-llama/llama-4-scout-17b-16e-instruct",
         messages=messages,  # type: ignore
         temperature=1,
@@ -68,7 +65,8 @@ def response(user_audio: tuple[int, NDArray[np.int16]]):
     long_response = response["long"]
     messages.append({"role": "assistant", "content": long_response})
     conversations[context.webrtc_id] = messages
-    yield from tts_model.stream_tts_sync(short_response)
+    async for output in tts_model.stream_tts(short_response):
+        yield output
     yield AdditionalOutputs(messages)
 
 

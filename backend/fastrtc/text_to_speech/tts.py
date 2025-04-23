@@ -225,3 +225,74 @@ class CartesiaTTSModel(TTSModel):
             except StopAsyncIteration:
                 break
         return options.sample_rate, buffer
+
+
+# @dataclass
+# class StreamSentence:
+#     text: str
+
+
+# @dataclass
+# class CompleteResult:
+#     text: str
+
+
+# async def _stream_text(
+#     text: AsyncGenerator[str | ChatCompletionStreamOutput, None],
+# ) -> AsyncGenerator[StreamSentence | CompleteResult, None]:
+#     all_text = ""
+#     current_sentence = ""
+#     async for chunk in text:
+#         if isinstance(chunk, ChatCompletionStreamOutput):
+#             chunk = chunk.choices[0].delta.content or ""
+#         all_text += chunk
+#         current_sentence += chunk
+#         if (chunk.endswith((".", "!", "?")) and len(current_sentence) > 25) or (
+#             len(current_sentence) > 100
+#         ):
+#             yield StreamSentence(text=current_sentence)
+#             current_sentence = ""
+#     if current_sentence:
+#         yield StreamSentence(text=current_sentence)
+#     yield CompleteResult(text=all_text)
+
+
+# async def _stream_text_to_queue(
+#     text: AsyncGenerator[str | ChatCompletionStreamOutput, None],
+#     queue: asyncio.Queue[
+#         StreamSentence | CompleteResult | tuple[int, NDArray[np.int16 | np.float32]]
+#     ],
+# ) -> None:
+#     async for chunk in _stream_text(text):
+#         await queue.put(chunk)
+
+
+# async def _stream_queue_to_tts(
+#     text: StreamSentence,
+#     queue: asyncio.Queue[
+#         StreamSentence | CompleteResult | tuple[int, NDArray[np.int16 | np.float32]]
+#     ],
+#     model: TTSModel,
+# ) -> None:
+#     async for chunk in model.stream_tts(text.text):
+#         await queue.put(chunk)
+
+
+# async def stream_from_llm(
+#     text: AsyncGenerator[str | ChatCompletionStreamOutput, None],
+#     model: TTSModel,
+#     yield_text_chunks: bool = False,
+# ) -> AsyncGenerator[
+#     tuple[int, NDArray[np.int16 | np.float32]] | AdditionalOutputs, None
+# ]:
+#     queue = asyncio.Queue()
+#     asyncio.create_task(_stream_text_to_queue(text, queue))
+#     while True:
+#         chunk = await queue.get()
+#         if isinstance(chunk, StreamSentence):
+#             async for output in model.stream_tts(chunk.text):
+#                 yield output
+#             if yield_text_chunks:
+#                 yield AdditionalOutputs(chunk.text)
+#         elif isinstance(chunk, CompleteResult) and not yield_text_chunks:
+#             yield AdditionalOutputs(chunk.text)
