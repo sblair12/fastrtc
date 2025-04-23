@@ -1,10 +1,10 @@
 import asyncio
+import importlib.util
 import re
 from collections.abc import AsyncGenerator, Generator
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Literal, Protocol, TypeVar
-
 
 import numpy as np
 from huggingface_hub import hf_hub_download
@@ -42,10 +42,19 @@ class KokoroTTSOptions(TTSOptions):
 
 
 @lru_cache
-def get_tts_model(model: Literal["kokoro"] = "kokoro") -> TTSModel:
-    m = KokoroTTSModel()
-    m.tts("Hello, world!")
-    return m
+def get_tts_model(
+    model: Literal["kokoro", "cartesia"] = "kokoro", **kwargs
+) -> TTSModel:
+    if model == "kokoro":
+        m = KokoroTTSModel()
+        m.tts("Hello, world!")
+        return m
+    elif model == "cartesia":
+        m = CartesiaTTSModel(api_key=kwargs.get("cartesia_api_key", ""))
+        m.tts("Hello, world!")
+        return m
+    else:
+        raise ValueError(f"Invalid model: {model}")
 
 
 class KokoroFixedBatchSize:
@@ -150,13 +159,17 @@ class CartesiaTTSOptions(TTSOptions):
     emotion: list[str] = []
     cartesia_version: str = "2024-06-10"
     model: str = "sonic-2"
-
-
-from cartesia import AsyncCartesia
+    sample_rate: int = 22_050
 
 
 class CartesiaTTSModel(TTSModel):
     def __init__(self, api_key: str):
+        if importlib.util.find_spec("cartesia") is None:
+            raise RuntimeError(
+                "cartesia is not installed. Please install it using 'pip install cartesia'."
+            )
+        from cartesia import AsyncCartesia
+
         self.client = AsyncCartesia(api_key=api_key)
 
     async def stream_tts(
@@ -166,31 +179,27 @@ class CartesiaTTSModel(TTSModel):
 
         sentences = re.split(r"(?<=[.!?])\s+", text.strip())
 
-        for s_idx, sentence in enumerate(sentences):
+        for sentence in sentences:
             if not sentence.strip():
                 continue
-            chunk_idx = 0
             async for output in async_aggregate_bytes_to_16bit(
                 self.client.tts.bytes(
                     model_id="sonic-2",
                     transcript=sentence,
-                    voice={"id": options.voice},
+                    voice={"id": options.voice},  # type: ignore
                     language="en",
                     output_format={
                         "container": "raw",
-                        "sample_rate": 48_000,
+                        "sample_rate": options.sample_rate,
                         "encoding": "pcm_s16le",
                     },
                 )
             ):
-                if s_idx != 0 and chunk_idx == 0:
-                    yield 48_000, np.zeros(48_000 // 7, dtype=np.int16)
-                chunk_idx += 1
-                yield 48_000, np.frombuffer(output, dtype=np.int16)
+                yield options.sample_rate, np.frombuffer(output, dtype=np.int16)
 
     def stream_tts_sync(
         self, text: str, options: CartesiaTTSOptions | None = None
-    ) -> Generator[tuple[int, NDArray[np.float32]], None, None]:
+    ) -> Generator[tuple[int, NDArray[np.int16]], None, None]:
         loop = asyncio.new_event_loop()
 
         iterator = self.stream_tts(text, options).__aiter__()
@@ -202,5 +211,17 @@ class CartesiaTTSModel(TTSModel):
 
     def tts(
         self, text: str, options: CartesiaTTSOptions | None = None
-    ) -> tuple[int, NDArray[np.float32]]:
-        pass
+    ) -> tuple[int, NDArray[np.int16]]:
+        loop = asyncio.new_event_loop()
+        buffer = np.array([], dtype=np.int16)
+
+        options = options or CartesiaTTSOptions()
+
+        iterator = self.stream_tts(text, options).__aiter__()
+        while True:
+            try:
+                _, chunk = loop.run_until_complete(iterator.__anext__())
+                buffer = np.concatenate([buffer, chunk])
+            except StopAsyncIteration:
+                break
+        return options.sample_rate, buffer
