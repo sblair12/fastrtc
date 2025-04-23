@@ -59,6 +59,8 @@ class UIArgs(TypedDict):
     If "submit", the input will be sent when the submit event is triggered by the user.
     If "change", the input will be sent whenever the user changes the input value.
     """
+    hide_title: NotRequired[bool]
+    """If True, the title and subtitle will not be displayed."""
 
 
 class Stream(WebRTCConnectionMixin):
@@ -339,21 +341,22 @@ class Stream(WebRTCConnectionMixin):
                     same_components.append(component)
         if self.modality == "video" and self.mode == "receive":
             with gr.Blocks() as demo:
-                gr.HTML(
-                    f"""
-                <h1 style='text-align: center'>
-                {ui_args.get("title", "Video Streaming (Powered by FastRTC ⚡️)")}
-                </h1>
-                """
-                )
-                if ui_args.get("subtitle"):
-                    gr.Markdown(
+                if not ui_args.get("hide_title"):
+                    gr.HTML(
                         f"""
-                <div style='text-align: center'>
-                {ui_args.get("subtitle")}
-                </div>
-                """
+                    <h1 style='text-align: center'>
+                    {ui_args.get("title", "Video Streaming (Powered by FastRTC ⚡️)")}
+                    </h1>
+                    """
                     )
+                    if ui_args.get("subtitle"):
+                        gr.Markdown(
+                            f"""
+                    <div style='text-align: center'>
+                    {ui_args.get("subtitle")}
+                    </div>
+                    """
+                        )
                 with gr.Row():
                     with gr.Column():
                         if additional_input_components:
@@ -391,21 +394,22 @@ class Stream(WebRTCConnectionMixin):
                     )
         elif self.modality == "video" and self.mode == "send":
             with gr.Blocks() as demo:
-                gr.HTML(
-                    f"""
-                <h1 style='text-align: center'>
-                {ui_args.get("title", "Video Streaming (Powered by FastRTC ⚡️)")}
-                </h1>
-                """
-                )
-                if ui_args.get("subtitle"):
-                    gr.Markdown(
+                if not ui_args.get("hide_title"):
+                    gr.HTML(
                         f"""
-                <div style='text-align: center'>
-                {ui_args.get("subtitle")}
-                </div>
-                """
+                    <h1 style='text-align: center'>
+                    {ui_args.get("title", "Video Streaming (Powered by FastRTC ⚡️)")}
+                    </h1>
+                    """
                     )
+                    if ui_args.get("subtitle"):
+                        gr.Markdown(
+                            f"""
+                    <div style='text-align: center'>
+                    {ui_args.get("subtitle")}
+                    </div>
+                    """
+                        )
                 with gr.Row():
                     if additional_input_components:
                         with gr.Column():
@@ -494,21 +498,22 @@ class Stream(WebRTCConnectionMixin):
                     )
         elif self.modality == "audio" and self.mode == "receive":
             with gr.Blocks() as demo:
-                gr.HTML(
-                    f"""
-                <h1 style='text-align: center'>
-                {ui_args.get("title", "Audio Streaming (Powered by FastRTC ⚡️)")}
-                </h1>
-                """
-                )
-                if ui_args.get("subtitle"):
-                    gr.Markdown(
+                if not ui_args.get("hide_title"):
+                    gr.HTML(
                         f"""
-                <div style='text-align: center'>
-                {ui_args.get("subtitle")}
-                </div>
-                """
+                    <h1 style='text-align: center'>
+                    {ui_args.get("title", "Audio Streaming (Powered by FastRTC ⚡️)")}
+                    </h1>
+                    """
                     )
+                    if ui_args.get("subtitle"):
+                        gr.Markdown(
+                            f"""
+                    <div style='text-align: center'>
+                    {ui_args.get("subtitle")}
+                    </div>
+                    """
+                        )
                 with gr.Row():
                     with gr.Column():
                         for component in additional_input_components:
@@ -549,21 +554,22 @@ class Stream(WebRTCConnectionMixin):
                     )
         elif self.modality == "audio" and self.mode == "send":
             with gr.Blocks() as demo:
-                gr.HTML(
-                    f"""
-                <h1 style='text-align: center'>
-                {ui_args.get("title", "Audio Streaming (Powered by FastRTC ⚡️)")}
-                </h1>
-                """
-                )
-                if ui_args.get("subtitle"):
-                    gr.Markdown(
+                if not ui_args.get("hide_title"):
+                    gr.HTML(
                         f"""
-                <div style='text-align: center'>
-                {ui_args.get("subtitle")}
-                </div>
-                """
+                    <h1 style='text-align: center'>
+                    {ui_args.get("title", "Audio Streaming (Powered by FastRTC ⚡️)")}
+                    </h1>
+                    """
                     )
+                    if ui_args.get("subtitle"):
+                        gr.Markdown(
+                            f"""
+                    <div style='text-align: center'>
+                    {ui_args.get("subtitle")}
+                    </div>
+                    """
+                        )
                 with gr.Row():
                     with gr.Column():
                         with gr.Group():
@@ -604,21 +610,22 @@ class Stream(WebRTCConnectionMixin):
                     )
         elif self.modality == "audio" and self.mode == "send-receive":
             with gr.Blocks() as demo:
-                gr.HTML(
-                    f"""
-                <h1 style='text-align: center'>
-                {ui_args.get("title", "Audio Streaming (Powered by FastRTC ⚡️)")}
-                </h1>
-                """
-                )
-                if ui_args.get("subtitle"):
-                    gr.Markdown(
+                if not ui_args.get("hide_title"):
+                    gr.HTML(
                         f"""
-                <div style='text-align: center'>
-                    {ui_args.get("subtitle")}
-                </div>
-                """
+                    <h1 style='text-align: center'>
+                    {ui_args.get("title", "Audio Streaming (Powered by FastRTC ⚡️)")}
+                    </h1>
+                    """
                     )
+                    if ui_args.get("subtitle"):
+                        gr.Markdown(
+                            f"""
+                    <div style='text-align: center'>
+                        {ui_args.get("subtitle")}
+                    </div>
+                    """
+                        )
                 with gr.Row():
                     with gr.Column():
                         with gr.Group():
@@ -662,21 +669,22 @@ class Stream(WebRTCConnectionMixin):
             css = """.my-group {max-width: 600px !important; max-height: 600 !important;}
             .my-column {display: flex !important; justify-content: center !important; align-items: center !important};"""
             with gr.Blocks(css=css) as demo:
-                gr.HTML(
-                    f"""
-                <h1 style='text-align: center'>
-                {ui_args.get("title", "Audio Video Streaming (Powered by FastRTC ⚡️)")}
-                </h1>
-                """
-                )
-                if ui_args.get("subtitle"):
-                    gr.Markdown(
+                if not ui_args.get("hide_title"):
+                    gr.HTML(
                         f"""
-                <div style='text-align: center'>
-                {ui_args.get("subtitle")}
-                </div>
-                """
+                    <h1 style='text-align: center'>
+                    {ui_args.get("title", "Audio Video Streaming (Powered by FastRTC ⚡️)")}
+                    </h1>
+                    """
                     )
+                    if ui_args.get("subtitle"):
+                        gr.Markdown(
+                            f"""
+                    <div style='text-align: center'>
+                    {ui_args.get("subtitle")}
+                    </div>
+                    """
+                        )
                 with gr.Row():
                     with gr.Column(elem_classes=["my-column"]):
                         with gr.Group(elem_classes=["my-group"]):
