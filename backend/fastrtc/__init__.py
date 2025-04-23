@@ -17,7 +17,11 @@ from .reply_on_pause import AlgoOptions, ReplyOnPause
 from .reply_on_stopwords import ReplyOnStopWords
 from .speech_to_text import MoonshineSTT, get_stt_model
 from .stream import Stream, UIArgs
-from .text_to_speech import KokoroTTSOptions, get_tts_model
+from .text_to_speech import (
+    CartesiaTTSOptions,
+    KokoroTTSOptions,
+    get_tts_model,
+)
 from .tracks import (
     AsyncAudioVideoStreamHandler,
     AsyncStreamHandler,
@@ -87,4 +91,5 @@ __all__ = [
     "VideoStreamHandler",
     "CloseStream",
     "get_current_context",
+    "CartesiaTTSOptions",
 ]

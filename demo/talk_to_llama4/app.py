@@ -9,15 +9,14 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastrtc import (
     AdditionalOutputs,
+    CartesiaTTSOptions,
     ReplyOnPause,
     Stream,
-    audio_to_bytes,
     get_cloudflare_turn_credentials_async,
     get_current_context,
-    get_tts_model,
     get_stt_model,
+    get_tts_model,
 )
-import time
 from groq import Groq
 from numpy.typing import NDArray
 
@@ -66,8 +65,10 @@ def response(user_audio: tuple[int, NDArray[np.int16]]):
     long_response = response["long"]
     messages.append({"role": "assistant", "content": long_response})
     conversations[context.webrtc_id] = messages
-    yield from tts_model.stream_tts_sync(short_response)
-    yield AdditionalOutputs(messages, gr.skip())
+    yield from tts_model.stream_tts_sync(
+        short_response, options=CartesiaTTSOptions(sample_rate=24_000)
+    )
+    yield AdditionalOutputs(messages)
 
 
 stream = Stream(
@@ -76,7 +77,7 @@ stream = Stream(
     mode="send-receive",
     additional_outputs=[gr.Chatbot(type="messages")],
     additional_outputs_handler=lambda old, new: new,
-    rtc_configuration=get_cloudflare_turn_credentials_async,
+    rtc_configuration=None,
     ui_args={"hide_title": True},
 )
 
@@ -84,7 +85,7 @@ with gr.Blocks() as demo:
     gr.HTML(
         f"""
         <h1 style='text-align: center; display: flex; align-items: center; justify-content: center;'>
-        <img src="/gradio_api/file=AV_Huggy.png" alt="AV Huggy" style="height: 100px; margin-right: 10px"> FastRTC + Cartesia TTS = Blazing Fast LLM Audio
+        <img src="/gradio_api/file={str((Path(__file__).parent / "AV_Huggy.png").resolve())}" alt="AV Huggy" style="height: 100px; margin-right: 10px"> FastRTC + Cartesia TTS = Blazing Fast LLM Audio
         </h1>
         """
     )
@@ -120,9 +121,13 @@ async def _(webrtc_id: str):
 
 if __name__ == "__main__":
     import os
+    from pathlib import Path
 
     if (mode := os.getenv("MODE")) == "UI":
-        stream.ui.launch(server_port=7860, allowed_paths=["AV_Huggy.png"])
+        stream.ui.launch(
+            server_port=7860,
+            allowed_paths=[str((Path(__file__).parent / "AV_Huggy.png").resolve())],
+        )
     elif mode == "PHONE":
         raise ValueError("Phone mode not supported")
     else:

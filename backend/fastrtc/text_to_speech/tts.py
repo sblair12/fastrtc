@@ -2,7 +2,7 @@ import asyncio
 import importlib.util
 import re
 from collections.abc import AsyncGenerator, Generator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Literal, Protocol, TypeVar
 
@@ -153,10 +153,11 @@ class KokoroTTSModel(TTSModel):
                 break
 
 
+@dataclass
 class CartesiaTTSOptions(TTSOptions):
     voice: str = "71a7ad14-091c-4e8e-a314-022ece01c121"
     language: str = "en"
-    emotion: list[str] = []
+    emotion: list[str] = field(default_factory=list)
     cartesia_version: str = "2024-06-10"
     model: str = "sonic-2"
     sample_rate: int = 22_050
