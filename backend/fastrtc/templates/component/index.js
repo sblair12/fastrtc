@@ -18817,7 +18817,7 @@ function b7(n, e, t) {
           () => {
             h({ type: "connection_timeout" });
           },
-          5e3
+          1e4
         );
         Bi(q, ie, f === "send" ? null : a, z.offer, we, "video", oe, p, void 0, m).then((fe) => {
           clearTimeout(U), ie = fe;
@@ -19712,7 +19712,7 @@ function n8(n, e, t) {
         () => {
           o({ type: "connection_timeout" });
         },
-        5e3
+        1e4
       );
       Bi(null, f, h, c.offer, m, "video", v).then((b) => {
         clearTimeout(A), t(10, f = b);
@@ -20394,7 +20394,7 @@ function M8(n, e, t) {
           () => {
             c({ type: "connection_timeout" });
           },
-          5e3
+          1e4
         );
         Bi(W, A, S, v.offer, b, "audio", y).then((q) => {
           clearTimeout(oe), A = q;
@@ -21598,7 +21598,7 @@ function dp(n, e, t) {
         () => {
           z({ type: "connection_timeout" });
         },
-        15e3
+        1e4
       );
       Bi(ue, oe, a === "send" ? null : W, R.offer, q, "audio", z, f, j, v).then((le) => {
         clearTimeout(N), oe = le;
