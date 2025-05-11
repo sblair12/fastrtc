@@ -21598,7 +21598,7 @@ function dp(n, e, t) {
         () => {
           z({ type: "connection_timeout" });
         },
-        5e3
+        15e3
       );
       Bi(ue, oe, a === "send" ? null : W, R.offer, q, "audio", z, f, j, v).then((le) => {
         clearTimeout(N), oe = le;

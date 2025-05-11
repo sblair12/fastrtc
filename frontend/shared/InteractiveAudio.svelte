@@ -214,7 +214,7 @@
     const timeoutId = setTimeout(() => {
       // @ts-ignore
       _on_change_cb({ type: "connection_timeout" });
-    }, 5000);
+    }, 10000);
 
     start(
       stream,

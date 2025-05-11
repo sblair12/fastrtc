@@ -72,7 +72,7 @@
     const timeoutId = setTimeout(() => {
       // @ts-ignore
       on_change_cb({ type: "connection_timeout" });
-    }, 5000);
+    }, 10000);
 
     start(
       null,
