@@ -12,6 +12,7 @@
   export let on_change_cb: (msg: "change" | "tick") => void;
   export let server: {
     offer: (body: any) => Promise<any>;
+    turn: () => Promise<any>;
   };
 
   let video_element: HTMLVideoElement;

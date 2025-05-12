@@ -22,6 +22,7 @@
 
   export let server: {
     offer: (body: any) => Promise<any>;
+    turn: () => Promise<any>;
   };
 
   let stream_state: "open" | "closed" | "waiting" = "closed";
