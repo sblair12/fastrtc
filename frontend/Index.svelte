@@ -47,7 +47,10 @@
       msg?.type === "warning" ||
       msg?.type === "error"
     ) {
-      gradio.dispatch(msg?.type === "error" ? "error" : "warning", msg.data);
+      gradio.dispatch(
+        msg?.type === "error" ? "error" : "warning",
+        msg?.data || msg?.message,
+      );
     } else if (msg?.type === "end_stream") {
       gradio.dispatch("warning", msg.data);
     } else if (msg?.type === "fetch_output") {
