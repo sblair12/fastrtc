@@ -208,7 +208,7 @@ async def get_cloudflare_turn_credentials_async(
 
     if hf_token is None:
         hf_token = os.getenv("HF_TOKEN", "").strip()
-    if hf_token is not None:
+    if hf_token:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 CLOUDFLARE_FASTRTC_TURN_URL,
